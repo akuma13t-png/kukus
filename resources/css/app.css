@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* resources/css/app.css (TAMBAHKAN DI BAGIAN BAWAH FILE INI) */
+
+.game-card-hover:hover {
+    /* Bayangan ke bawah yang halus */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); 
+    /* Menggeser kartu sedikit ke atas saat di-hover */
+    transform: translateY(-2px); 
+    /* Garis tipis aksen biru di sebelah kiri */
+    border-left: 4px solid #4A90E2; 
+}
