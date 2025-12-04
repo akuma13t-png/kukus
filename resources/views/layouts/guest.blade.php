@@ -131,54 +131,48 @@
         @endif
     </main>
 
-    {{-- 3. FOOTER (TETAP SAMA) --}}
+    {{-- FOOTER UPDATED --}}
     <footer class="bg-[#171a21] text-[#8f98a0] py-12 mt-auto border-t-4 border-black shadow-[0_-10px_40px_rgba(0,0,0,0.5)] relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 border-b border-gray-700 pb-8">
                 <div class="max-w-sm">
                     <div class="flex items-center gap-2 mb-4 opacity-80 hover:opacity-100 transition">
-                        <img src="{{ asset('logo.png') }}" alt="Logo" class="h-8 grayscale">
+                        <img src="{{ asset('Logo.png') }}" alt="Logo" class="h-8 grayscale">
                         <span class="text-xl font-bold text-white tracking-widest">STEAMCLONE</span>
                     </div>
                     <p class="text-xs leading-relaxed">
-                        © 2025 SteamClone Corporation. Semua hak dilindungi undang-undang. Semua merek dagang adalah
-                        milik dari pemiliknya masing-masing di AS dan negara lain.
+                        © 2025 SteamClone Corporation. <br>
+                        Tugas Kelompok Pemrograman Web.
                     </p>
                 </div>
                 <div class="flex gap-12 text-sm">
                     <div>
                         <h5 class="font-bold text-white mb-3 uppercase text-xs tracking-wider">Perusahaan</h5>
                         <ul class="space-y-2">
-                            <li><a href="#" class="hover:text-white hover:underline">Tentang Kami</a></li>
-                            <li><a href="#" class="hover:text-white hover:underline">Karir</a></li>
-                            <li><a href="#" class="hover:text-white hover:underline">Kontak</a></li>
+                            {{-- Link Tentang Kami --}}
+                            <li><a href="{{ route('pages.about') }}" class="hover:text-white hover:underline">Tentang Kami</a></li>
                         </ul>
                     </div>
                     <div>
                         <h5 class="font-bold text-white mb-3 uppercase text-xs tracking-wider">Bantuan</h5>
                         <ul class="space-y-2">
-                            <li><a href="#" class="hover:text-white hover:underline">Dukungan</a></li>
-                            <li><a href="#" class="hover:text-white hover:underline">Forum</a></li>
-                            <li><a href="#" class="hover:text-white hover:underline">Stats</a></li>
+                            {{-- Link Stats --}}
+                            <li><a href="{{ route('pages.stats') }}" class="hover:text-white hover:underline">System Status</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
+            
             <div class="flex flex-col md:flex-row justify-between items-center text-xs font-bold gap-4">
-                <div class="flex gap-4">
-                    <a href="#" class="hover:text-white">Kebijakan Privasi</a>
+                <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                    {{-- Link Privacy, Terms, Refund --}}
+                    <a href="{{ route('pages.privacy') }}" class="hover:text-white">Kebijakan Privasi</a>
                     <span class="text-gray-600">|</span>
-                    <a href="#" class="hover:text-white">Hukum</a>
+                    <a href="{{ route('pages.terms') }}" class="hover:text-white">Perjanjian Pelanggan</a>
                     <span class="text-gray-600">|</span>
-                    <a href="#" class="hover:text-white">Perjanjian Pelanggan</a>
-                    <span class="text-gray-600">|</span>
-                    <a href="#" class="hover:text-white">Refunds</a>
+                    <a href="{{ route('refunds.create') }}" class="hover:text-white text-[#66c0f4]">Refunds</a>
                 </div>
-                <div class="flex gap-3 opacity-60">
-                    <span class="hover:text-white cursor-pointer transition">Facebook</span>
-                    <span class="hover:text-white cursor-pointer transition">Twitter</span>
-                    <span class="hover:text-white cursor-pointer transition">YouTube</span>
-                </div>
+                {{-- Social Media dihapus --}}
             </div>
         </div>
     </footer>

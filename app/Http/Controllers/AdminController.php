@@ -3,63 +3,69 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Game;
+use App\Models\RefundRequest; // Jangan lupa import Model ini
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
-    // Menampilkan Dashboard Admin
     public function index()
     {
-        // Security Check: Hanya Admin yang boleh masuk
-        if (Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
-        }
+        $users = User::all();
+        
+        // Ambil data refund, urutkan dari yang terbaru
+        $refunds = RefundRequest::with(['user', 'game'])
+                    ->orderBy('created_at', 'desc')
+                    ->get();
 
-        // Ambil data untuk ditampilkan
-        $pendingPublishers = User::where('publisher_request_status', 'pending')->get();
-        $pendingGames = Game::where('is_approved', false)->get();
-        $allUsers = User::where('role', '!=', 'admin')->get(); // Semua user selain admin
-        $allGames = Game::all();
-
-        return view('admin.dashboard', compact('pendingPublishers', 'pendingGames', 'allUsers', 'allGames'));
+        return view('admin.dashboard', compact('users', 'refunds'));
     }
 
-    // --- FITUR MANAJEMEN USER ---
-
+    // --- LOGIKA UNTUK PUBLISHER (YANG SUDAH ADA) ---
     public function approvePublisher(User $user)
     {
-        $user->update([
-            'role' => 'publisher',
-            'publisher_request_status' => 'approved'
-        ]);
-        return back()->with('success', 'User approved as Publisher.');
+        $user->role = 'publisher';
+        $user->publisher_request_status = 'approved';
+        $user->save();
+
+        return redirect()->back()->with('success', 'User approved as Publisher.');
     }
 
     public function rejectPublisher(User $user)
     {
-        $user->update(['publisher_request_status' => 'rejected']);
-        return back()->with('success', 'Publisher request rejected.');
+        $user->publisher_request_status = 'rejected';
+        $user->save();
+
+        return redirect()->back()->with('success', 'Publisher request rejected.');
     }
 
-    public function banUser(User $user)
+    // --- LOGIKA BARU UNTUK REFUND ---
+    
+    public function approveRefund($id)
     {
-        $user->delete();
-        return back()->with('success', 'User has been banned.');
+        $refund = RefundRequest::findOrFail($id);
+        
+        if ($refund->status !== 'pending') {
+            return back()->with('error', 'Request sudah diproses sebelumnya.');
+        }
+
+        // 1. Ubah status refund jadi approved
+        $refund->update(['status' => 'approved']);
+
+        // 2. Hapus game dari library user
+        // Kita gunakan detach() untuk menghapus relasi di tabel pivot
+        $user = $refund->user;
+        if($user->games) {
+            $user->games()->detach($refund->game_id);
+        }
+
+        return back()->with('success', 'Refund disetujui. Game telah dihapus dari library user.');
     }
 
-    // --- FITUR MANAJEMEN GAME ---
-
-    public function approveGame(Game $game)
+    public function rejectRefund($id)
     {
-        $game->update(['is_approved' => true]);
-        return back()->with('success', 'Game approved and published.');
-    }
+        $refund = RefundRequest::findOrFail($id);
+        $refund->update(['status' => 'rejected']);
 
-    public function rejectGame(Game $game)
-    {
-        $game->delete(); // Hapus game jika tidak layak
-        return back()->with('success', 'Game rejected and deleted.');
+        return back()->with('success', 'Refund ditolak.');
     }
 }
