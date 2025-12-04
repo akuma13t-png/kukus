@@ -20,14 +20,14 @@ class DailyChallengeController extends Controller
                                      ->first();
 
         // Determine today's game based on day of year OR Admin Override
-        // 0: Tic-Tac-Toe, 1: Rock-Paper-Scissors, 2: Memory Match
-        $games = ['tictactoe', 'rps', 'memory'];
+        // 0: Tic-Tac-Toe, 1: Rock-Paper-Scissors, 2: Memory Match, 3: Snake & Ladders, 4: Mancala
+        $games = ['tictactoe', 'rps', 'memory', 'snake_ladders', 'mancala'];
         
         // ADMIN OVERRIDE CHECK
         if (\Illuminate\Support\Facades\Cache::has('daily_game_override')) {
             $currentGame = \Illuminate\Support\Facades\Cache::get('daily_game_override');
         } else {
-            $gameIndex = $today->dayOfYear % 3;
+            $gameIndex = $today->dayOfYear % 5;
             $currentGame = $games[$gameIndex];
         }
 
@@ -82,7 +82,7 @@ class DailyChallengeController extends Controller
         }
 
         $request->validate([
-            'game' => 'required|in:tictactoe,rps,memory,reset'
+            'game' => 'required|in:tictactoe,rps,memory,snake_ladders,mancala,reset'
         ]);
 
         if ($request->game === 'reset') {

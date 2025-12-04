@@ -127,7 +127,7 @@ class CartController extends Controller
     {
         $request->validate([
             'payment_method' => 'required',
-            'voucher_id' => 'nullable|exists:user_vouchers,voucher_id',
+            'voucher_id' => 'nullable', // Removed exists check to avoid issues with empty strings/ownership
         ]);
 
         $cart = Session::get('cart', []);
@@ -138,7 +138,7 @@ class CartController extends Controller
         $user = Auth::user();
         $paymentMethod = $request->payment_method;
         $transactionId = 'TXN-' . strtoupper(Str::random(10));
-        $voucherId = $request->input('voucher_id');
+        $voucherId = $request->input('voucher_id') ?: null; // Handle empty string
 
         try {
             DB::transaction(function () use ($user, $cart, $paymentMethod, $transactionId, $voucherId) {

@@ -41,6 +41,10 @@
                             @include('community.games.rps')
                         @elseif($currentGame === 'memory')
                             @include('community.games.memory')
+                        @elseif($currentGame === 'snake_ladders')
+                            @include('community.games.snake_ladders')
+                        @elseif($currentGame === 'mancala')
+                            @include('community.games.mancala')
                         @endif
                     </div>
                 @endif
@@ -53,7 +57,7 @@
                     <h3 class="text-xl font-bold text-red-300 mb-4">⚠️ Admin Test Controls</h3>
                     <p class="text-sm text-gray-300 mb-4">Force switch today's game for testing purposes.</p>
                     
-                    <div class="flex gap-4">
+                    <div class="flex flex-wrap gap-4">
                         <form action="{{ route('admin.daily.setGame') }}" method="POST">
                             @csrf <input type="hidden" name="game" value="tictactoe">
                             <button class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-xs font-bold uppercase">Force Tic-Tac-Toe</button>
@@ -65,6 +69,14 @@
                         <form action="{{ route('admin.daily.setGame') }}" method="POST">
                             @csrf <input type="hidden" name="game" value="memory">
                             <button class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-xs font-bold uppercase">Force Memory</button>
+                        </form>
+                        <form action="{{ route('admin.daily.setGame') }}" method="POST">
+                            @csrf <input type="hidden" name="game" value="snake_ladders">
+                            <button class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-xs font-bold uppercase">Force Snake & Ladders</button>
+                        </form>
+                        <form action="{{ route('admin.daily.setGame') }}" method="POST">
+                            @csrf <input type="hidden" name="game" value="mancala">
+                            <button class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-xs font-bold uppercase">Force Mancala</button>
                         </form>
                         <form action="{{ route('admin.daily.setGame') }}" method="POST">
                             @csrf <input type="hidden" name="game" value="reset">

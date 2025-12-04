@@ -35,9 +35,7 @@
 
             <h4 class="text-base font-bold mt-4 mb-2 text-[#66c0f4]">Purchased Games:</h4>
             <ul class="space-y-1 text-sm">
-                @php $total = 0; @endphp
                 @foreach ($transaction['items'] ?? [] as $item)
-                    @php $total += $item['final_price']; @endphp
                     <li class="flex justify-between text-gray-400">
                         <span>{{ $item['title'] }}</span>
                         <span class="text-right">Rp {{ number_format($item['final_price'], 0, ',', '.') }}</span>
@@ -47,7 +45,7 @@
             
             <div class="border-t-2 border-white/50 pt-3 mt-3 flex justify-between items-center">
                 <span class="text-xl font-black text-white uppercase">Total Paid:</span>
-                <span class="text-2xl font-black text-green-400">Rp {{ number_format($total, 0, ',', '.') }}</span>
+                <span class="text-2xl font-black text-green-400">Rp {{ number_format($transaction['total'], 0, ',', '.') }}</span>
             </div>
 
         </div>
