@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Game;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use App\Models\Shelf; 
+use Illuminate\Support\Facades\Auth;
 
 class GameController extends Controller
 {
@@ -74,8 +76,49 @@ class GameController extends Controller
     }
 
     public function libraryIndex()
-    {
-        $ownedGames = Game::all();
-        return view('library', compact('ownedGames'));
+{
+    // 1. Ambil semua game (untuk list utama)
+    $ownedGames = \App\Models\Game::all();
+
+    // 2. AMBIL SHELF DARI DATABASE (Agar tidak hilang saat refresh)
+    // Kita ambil shelf milik user yang login, beserta isi gamenya
+    $userShelves = Shelf::where('user_id', Auth::id())
+                        ->with('games') // Load relasi games
+                        ->get();
+
+    return view('library', compact('ownedGames', 'userShelves'));
+}
+
+   public function storeShelf(Request $request)
+{
+    // 1. Buat Shelf (Wadah Rak)
+    $shelf = Shelf::create([
+        'user_id' => Auth::id(),
+        'name' => $request->name,
+        'type' => $request->mode, // 'manual' atau 'dynamic'
+        'criteria' => $request->genre, // Simpan genre (misal: RPG)
+    ]);
+
+    // 2. LOGIKA FILTER (Ini yang memperbaiki masalah game masuk semua)
+    
+    // KASUS A: Jika User memilih MANUAL
+    if ($request->mode === 'manual') {
+        // Cek apakah ada game yang dicentang?
+        if ($request->has('selected_games')) {
+            // HANYA masukkan game yang ID-nya dikirim dari form
+            $shelf->games()->attach($request->selected_games);
+        }
+    } 
+    // KASUS B: Jika User memilih DYNAMIC (Otomatis)
+    elseif ($request->mode === 'dynamic') {
+        // Cari game yang genrenya SAMA dengan yang dipilih
+        $gameIds = \App\Models\Game::where('genre', $request->genre)->pluck('id');
+        
+        // Masukkan game hasil filter tersebut ke shelf
+        $shelf->games()->attach($gameIds);
     }
+
+    return redirect()->back()->with('success', 'Shelf berhasil dibuat!');
+}
+
 }

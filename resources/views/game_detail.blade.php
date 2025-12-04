@@ -207,7 +207,7 @@
                         button.classList.add('border-blue-500', 'text-white', 'font-semibold');
 
                         // Tampilkan konten yang sesuai
-                        const targetContent = document.getElementById('content' + targetId.substring(4)); // Ambil ID yang benar: content-desc
+                        const targetContent = document.getElementById('content-' + targetId.substring(4)); // Ambil ID yang benar: content-desc
                         if (targetContent) {
                             targetContent.classList.remove('hidden');
                         }

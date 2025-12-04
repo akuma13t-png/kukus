@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GameController; // Pastikan ini ada
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,15 @@ Route::get('/', [GameController::class, 'index'])->name('store.index');
 
 // Route Baru (Halaman Pencarian Khusus)
 Route::get('/search', [GameController::class, 'search'])->name('games.search');
+
+Route::post('/library/shelf', [GameController::class, 'storeShelf'])
+    ->middleware('auth')
+    ->name('shelf.store');
+
+    // Tambahkan di dalam group auth atau di bawah route library
+Route::post('/library/shelf', [GameController::class, 'storeShelf'])
+    ->middleware('auth')
+    ->name('shelf.store');
 
 // Route Lainnya (Biarkan tetap ada)
 // ...

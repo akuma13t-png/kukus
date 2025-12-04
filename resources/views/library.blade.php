@@ -38,6 +38,46 @@
 
         </div>
 
+        <div class="mt-12 space-y-8">
+    <h2 class="text-2xl font-bold text-white border-b border-gray-600 pb-2">My Collections</h2>
+
+    @forelse($userShelves as $shelf)
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            
+            {{-- Header Shelf --}}
+            <div class="flex items-center gap-4 mb-4">
+                <h3 class="text-xl font-bold text-[#3b9de9]">{{ $shelf->name }}</h3>
+                @if($shelf->type == 'dynamic')
+                    <span class="text-xs bg-yellow-600 text-white px-2 py-1 rounded">
+                        ⚡ Auto: {{ $shelf->criteria }}
+                    </span>
+                @else
+                    <span class="text-xs bg-gray-600 text-white px-2 py-1 rounded">
+                        🖐 Manual
+                    </span>
+                @endif
+            </div>
+
+            {{-- Isi Game dalam Shelf --}}
+            <div class="flex flex-wrap gap-4">
+                @forelse($shelf->games as $game)
+                    <div class="w-32 group relative">
+                        <img src="{{ $game->cover_image }}" class="w-full h-44 object-cover rounded shadow-lg group-hover:scale-105 transition duration-300">
+                        <div class="mt-2 text-center">
+                            <p class="text-gray-300 text-xs font-bold truncate">{{ $game->title }}</p>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-gray-500 text-sm italic">Belum ada game yang cocok dengan kriteria ini.</p>
+                @endforelse
+            </div>
+
+        </div>
+    @empty
+        <p class="text-gray-500">Belum ada koleksi yang dibuat.</p>
+    @endforelse
+</div>
+
     </main>
 
     {{-- =================================================================== --}}
