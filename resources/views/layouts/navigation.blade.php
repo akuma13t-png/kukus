@@ -44,22 +44,30 @@
             <div class="hidden sm:flex sm:items-center sm:ml-6">
                 @auth
                     {{-- TAMPILAN JIKA LOGIN --}}
+                    
+                    {{-- INFO SALDO (Placeholder) --}}
+                    <div class="text-right hidden md:block leading-tight mr-4">
+                        <div class="text-[#66c0f4] font-bold text-sm group-hover:text-white transition duration-200">{{ Auth::user()->name }}</div>
+                        <div class="text-xs text-gray-400 group-hover:text-gray-300 font-mono">Rp 0</div> 
+                    </div>
+
+                    {{-- DROPDOWN / PROFILE IMAGE --}}
                     <x-dropdown align="right" width="60">
                         <x-slot name="trigger">
-                            <button class="flex items-center gap-3 group focus:outline-none">
-                                <div class="text-right hidden md:block leading-tight">
-                                    <div class="text-[#66c0f4] font-bold text-sm group-hover:text-white transition duration-200">{{ Auth::user()->name }}</div>
-                                    <div class="text-xs text-gray-400 group-hover:text-gray-300 font-mono">Rp 0</div> 
-                                </div>
+                            <button class="flex items-center gap-2 group focus:outline-none">
                                 <div class="relative">
+                                    {{-- GAMBAR PROFILE (Bisa diklik untuk dropdown, atau bisa diubah jadi link langsung) --}}
+                                    {{-- Sesuai request: Kalo diklik masuk ke profile edit --}}
+                                    
+                                    {{-- Gunakan Accessor profile_photo_url yang kita buat di Model User --}}
                                     <div class="w-10 h-10 p-[2px] bg-gradient-to-b from-[#5c5c5c] to-[#2d2d2d] group-hover:from-[#66c0f4] group-hover:to-[#2a475e] rounded-[2px] transition duration-300">
                                         <img class="w-full h-full object-cover rounded-[1px]" 
-                                             src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=1b2838&color=66c0f4&bold=true" 
+                                             src="{{ Auth::user()->profile_photo_url }}" 
                                              alt="{{ Auth::user()->name }}" />
                                     </div>
                                     <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-[#66c0f4] border-2 border-[#171a21] rounded-full shadow-sm"></div>
                                 </div>
-                                <svg class="fill-current h-3 w-3 text-gray-500 group-hover:text-white ml-1 transition" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <svg class="fill-current h-3 w-3 text-gray-500 group-hover:text-white transition" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </button>
@@ -72,8 +80,11 @@
                                     <div class="font-bold text-white text-sm truncate">{{ Auth::user()->email }}</div>
                                 </div>
                                 <div class="py-1">
-                                    <x-dropdown-link :href="route('profile.edit')" class="hover:bg-[#dcdedf] hover:text-[#171a21] px-4 py-2 block text-left transition-colors">{{ __('View Profile') }}</x-dropdown-link>
-                                    <x-dropdown-link :href="route('dashboard')" class="hover:bg-[#dcdedf] hover:text-[#171a21] px-4 py-2 block text-left transition-colors">{{ __('Account Details') }}</x-dropdown-link>
+                                    {{-- Link Edit Profile yang diminta --}}
+                                    <x-dropdown-link :href="route('profile.edit')" class="hover:bg-[#dcdedf] hover:text-[#171a21] px-4 py-2 block text-left transition-colors font-bold text-white">
+                                        {{ __('Edit Profile / Avatar') }}
+                                    </x-dropdown-link>
+                                    
                                     <x-dropdown-link :href="route('library.index')" class="hover:bg-[#dcdedf] hover:text-[#171a21] px-4 py-2 block text-left transition-colors">{{ __('My Games') }}</x-dropdown-link>
                                 </div>
                                 <div class="border-t border-[#171a21]"></div>
@@ -120,7 +131,9 @@
         @auth
         <div class="pt-4 pb-1 border-t border-gray-700 bg-[#212429]">
             <div class="px-4 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gray-600 rounded"><img class="w-full h-full object-cover rounded" src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=2a475e&color=66c0f4" /></div>
+                <div class="w-10 h-10 bg-gray-600 rounded">
+                    <img class="w-full h-full object-cover rounded" src="{{ Auth::user()->profile_photo_url }}" />
+                </div>
                 <div><div class="font-medium text-base text-[#66c0f4]">{{ Auth::user()->name }}</div><div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div></div>
             </div>
             <div class="mt-3 space-y-1">

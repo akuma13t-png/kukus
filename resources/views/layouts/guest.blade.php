@@ -13,15 +13,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-{{-- LAYOUT: Flex Column agar footer selalu di bawah --}}
-
 <body class="font-sans antialiased bg-[#1b2838] text-gray-200 flex flex-col min-h-screen">
 
     {{-- 1. HEADER --}}
     <header class="bg-[#171a21] border-b-4 border-black shadow-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center gap-4">
 
-            {{-- KIRI: LOGO & NAVIGASI --}}
+            {{-- KIRI: LOGO & NAVIGASI (TETAP SAMA) --}}
             <div class="flex items-center space-x-6 flex-shrink-0">
                 <a href="{{ route('store.index') }}" class="flex items-center gap-2 group">
                     <img src="{{ asset('logo.png') }}" alt="Logo"
@@ -38,13 +36,12 @@
                         class="px-3 py-2 font-bold text-blue-400 hover:text-white transition uppercase text-sm">Store</a>
                     <a href="{{ route('library.index') }}"
                         class="px-3 py-2 font-bold text-gray-400 hover:text-white transition uppercase text-sm">Library</a>
-                    <a href="#"
+                    <a href="{{ route('dashboard') }}"
                         class="px-3 py-2 font-bold text-gray-400 hover:text-white transition uppercase text-sm">Community</a>
                 </nav>
             </div>
 
-            {{-- TENGAH: SEARCH BAR (BARU) --}}
-            {{-- Mengarah ke route 'games.search' yang sudah kita buat sebelumnya --}}
+            {{-- TENGAH: SEARCH BAR (TETAP SAMA) --}}
             <div class="flex-grow max-w-md mx-4 hidden md:block">
                 <form action="{{ route('games.search') }}" method="GET" class="relative group">
                     <input type="text" name="q" placeholder="search" value="{{ request('q') }}"
@@ -56,22 +53,70 @@
                 </form>
             </div>
 
-            {{-- KANAN: USER / AUTH --}}
+            {{-- KANAN: USER / AUTH (DI UPDATE) --}}
             <div class="flex items-center space-x-3 flex-shrink-0">
                 @auth
-                    <div class="text-right hidden sm:block leading-tight">
-                        <span class="block text-[10px] text-gray-400 uppercase">Account</span>
-                        <span
-                            class="block text-sm font-bold text-blue-400 truncate max-w-[100px]">{{ Auth::user()->name }}</span>
+                    {{-- 1. Info User (Nama & Saldo) --}}
+                    <div class="text-right hidden sm:block leading-tight mr-2">
+                        <div class="text-[#66c0f4] font-bold text-sm truncate max-w-[150px]">{{ Auth::user()->name }}</div>
+                        <div class="text-[10px] text-gray-400 font-mono">Rp 0</div>
                     </div>
-                    <a href="{{ route('logout') }}"
-                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                        class="bg-gray-700 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-bold transition">LOGOUT</a>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
+
+                    {{-- 2. Profile Picture & Dropdown (SESUAI REQUEST) --}}
+                    <div class="relative" x-data="{ open: false }">
+                        {{-- Tombol Gambar Profile --}}
+                        <button @click="open = !open" class="flex items-center gap-2 focus:outline-none group">
+                            <div class="w-9 h-9 p-[2px] bg-gradient-to-b from-[#5c5c5c] to-[#2d2d2d] group-hover:from-[#66c0f4] group-hover:to-[#2a475e] rounded-[2px] transition duration-300">
+                                <img src="{{ Auth::user()->profile_photo_url }}" 
+                                     alt="{{ Auth::user()->name }}" 
+                                     class="w-full h-full object-cover rounded-[1px] bg-[#171a21]">
+                            </div>
+                            <svg class="w-3 h-3 text-gray-500 group-hover:text-white transition" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+
+                        {{-- Dropdown Menu (Muncul saat klik gambar) --}}
+                        <div x-show="open" 
+                             @click.outside="open = false"
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-48 bg-[#3d4450] text-[#c5c3c0] text-xs shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-[#171a21] z-50 origin-top-right"
+                             style="display: none;">
+                            
+                            <div class="px-4 py-3 bg-[#171a21] border-b border-gray-600">
+                                <div class="uppercase tracking-widest text-[10px] font-bold text-gray-500 mb-1">Signed in as</div>
+                                <div class="font-bold text-white truncate">{{ Auth::user()->email }}</div>
+                            </div>
+
+                            {{-- Link ke Profile Edit --}}
+                            <a href="{{ route('profile.edit') }}" class="block px-4 py-2 hover:bg-[#dcdedf] hover:text-[#171a21] transition font-bold text-white">Edit Profile / Avatar</a>
+                            
+                            <a href="{{ route('library.index') }}" class="block px-4 py-2 hover:bg-[#dcdedf] hover:text-[#171a21] transition">My Games</a>
+                            
+                            {{-- Admin Panel Link (Jika Admin) --}}
+                            @if(Auth::user()->role === 'admin')
+                                <div class="border-t border-gray-600 my-1"></div>
+                                <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-red-400 hover:bg-red-900 hover:text-white font-bold transition">⚠️ Admin Panel</a>
+                            @endif
+
+                            <div class="border-t border-gray-600 my-1"></div>
+                            
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="block w-full text-left px-4 py-2 hover:bg-[#dcdedf] hover:text-[#171a21] transition text-white">Sign out</button>
+                            </form>
+                        </div>
+                    </div>
                 @else
-                    <a href="{{ route('login') }}" class="text-xs font-bold text-white hover:text-blue-400">Login</a>
+                    {{-- GUEST LINKS (TETAP SAMA) --}}
+                    <a href="{{ route('login') }}" class="text-xs font-bold text-white hover:text-blue-400 uppercase">Login</a>
                     <span class="text-gray-600">|</span>
-                    <a href="{{ route('register') }}" class="text-xs font-bold text-white hover:text-blue-400">Register</a>
+                    <a href="{{ route('register') }}" class="text-xs font-bold text-white hover:text-blue-400 uppercase">Register</a>
                 @endauth
             </div>
         </div>
@@ -82,19 +127,14 @@
         @isset($slot)
             {{ $slot }}
         @else
-        @yield('content')
+            @yield('content')
         @endif
     </main>
 
-    {{-- 3. FOOTER (DARI KODE LAMA ANDA) --}}
-    <footer
-        class="bg-[#171a21] text-[#8f98a0] py-12 mt-auto border-t-4 border-black shadow-[0_-10px_40px_rgba(0,0,0,0.5)] relative z-10">
+    {{-- 3. FOOTER (TETAP SAMA) --}}
+    <footer class="bg-[#171a21] text-[#8f98a0] py-12 mt-auto border-t-4 border-black shadow-[0_-10px_40px_rgba(0,0,0,0.5)] relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {{-- Bagian Atas Footer: Logo & Link --}}
             <div class="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 border-b border-gray-700 pb-8">
-
-                {{-- Branding --}}
                 <div class="max-w-sm">
                     <div class="flex items-center gap-2 mb-4 opacity-80 hover:opacity-100 transition">
                         <img src="{{ asset('logo.png') }}" alt="Logo" class="h-8 grayscale">
@@ -105,8 +145,6 @@
                         milik dari pemiliknya masing-masing di AS dan negara lain.
                     </p>
                 </div>
-
-                {{-- Link Navigasi --}}
                 <div class="flex gap-12 text-sm">
                     <div>
                         <h5 class="font-bold text-white mb-3 uppercase text-xs tracking-wider">Perusahaan</h5>
@@ -126,8 +164,6 @@
                     </div>
                 </div>
             </div>
-
-            {{-- Bagian Bawah: Legal & Sosmed --}}
             <div class="flex flex-col md:flex-row justify-between items-center text-xs font-bold gap-4">
                 <div class="flex gap-4">
                     <a href="#" class="hover:text-white">Kebijakan Privasi</a>
@@ -138,18 +174,15 @@
                     <span class="text-gray-600">|</span>
                     <a href="#" class="hover:text-white">Refunds</a>
                 </div>
-
                 <div class="flex gap-3 opacity-60">
                     <span class="hover:text-white cursor-pointer transition">Facebook</span>
                     <span class="hover:text-white cursor-pointer transition">Twitter</span>
                     <span class="hover:text-white cursor-pointer transition">YouTube</span>
                 </div>
             </div>
-
         </div>
     </footer>
 
     @stack('scripts')
 </body>
-
 </html>

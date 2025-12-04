@@ -5,7 +5,7 @@
         </h2>
 
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __("Update your account's profile information and email address.") }}
+            {{ __("Update your account's profile information, avatar, and email address.") }}
         </p>
     </header>
 
@@ -13,16 +13,45 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    {{-- Tambahkan enctype untuk upload file --}}
+    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6" enctype="multipart/form-data">
         @csrf
         @method('patch')
 
+        {{-- 1. INPUT FOTO PROFIL --}}
+        <div>
+            <x-input-label for="photo" :value="__('Avatar')" />
+            
+            <div class="flex items-center gap-4 mt-2">
+                {{-- Preview Gambar Saat Ini --}}
+                <div class="w-20 h-20 bg-gray-700 rounded overflow-hidden border border-gray-600 shadow-md shrink-0">
+                    <img src="{{ $user->profile_photo_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                </div>
+
+                {{-- Input File --}}
+                <div class="flex-grow">
+                    <input id="photo" name="photo" type="file" class="block w-full text-sm text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-sm file:border-0
+                        file:text-xs file:font-bold file:uppercase
+                        file:bg-[#66c0f4] file:text-black
+                        hover:file:bg-[#419ec0] file:cursor-pointer
+                        cursor-pointer focus:outline-none bg-[#2a3f5a] rounded-sm
+                    " accept="image/*" />
+                    <p class="text-xs text-gray-500 mt-1">Recommended: Square image, max 2MB.</p>
+                </div>
+            </div>
+            <x-input-error class="mt-2" :messages="$errors->get('photo')" />
+        </div>
+
+        {{-- 2. NAMA --}}
         <div>
             <x-input-label for="name" :value="__('Name')" />
             <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
 
+        {{-- 3. EMAIL --}}
         <div>
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
@@ -48,7 +77,7 @@
         </div>
 
         <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+            <x-primary-button>{{ __('Save Changes') }}</x-primary-button>
 
             @if (session('status') === 'profile-updated')
                 <p
@@ -56,8 +85,8 @@
                     x-show="show"
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600 dark:text-gray-400"
-                >{{ __('Saved.') }}</p>
+                    class="text-sm text-green-400 font-bold"
+                >{{ __('Saved successfully.') }}</p>
             @endif
         </div>
     </form>

@@ -25,6 +25,8 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            // Validasi foto (opsional, max 2MB, harus gambar)
+            'photo' => ['nullable', 'image', 'max:2048'], 
         ];
     }
 }
