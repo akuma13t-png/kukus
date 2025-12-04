@@ -18,19 +18,36 @@ class TopupController extends Controller
         return view('pages.topup', compact('amounts'));
     }
 
-    // Memproses topup Kukus Money (Simulasi)
+    // Memproses topup Kukus Money
     public function store(Request $request)
     {
+        // 1. Ambil nilai: Prioritaskan input manual, jika kosong baru ambil preset
+        // Kita menggunakan helper 'filled' untuk mengecek apakah input tidak kosong
+        $amount = $request->filled('manual_amount') 
+                    ? $request->manual_amount 
+                    : $request->preset_amount;
+
+        // 2. Masukkan nilai yang sudah dipilih kembali ke request untuk divalidasi
+        $request->merge(['final_amount' => $amount]);
+
+        // 3. Validasi 'final_amount'
         $request->validate([
-            // Validasi: pastikan amount adalah angka, minimal 10 ribu (simulasi)
-            'amount' => 'required|numeric|min:10000|max:10000000', 
+            'final_amount' => 'required|numeric|min:10000|max:10000000', 
+        ], [
+            'final_amount.required' => 'Silakan pilih nominal atau masukkan jumlah manual.',
+            'final_amount.min' => 'Minimal topup adalah Rp 10.000',
         ]);
 
         $user = Auth::user();
-        $topupAmount = $request->amount;
+        
+        // Pastikan amount di-cast ke float/integer agar operasi matematika aman
+        $topupAmount = (float) $request->final_amount;
 
         // Simulasi proses pembayaran sukses, tambahkan saldo
-        $user->kukus_money_balance += $topupAmount;
+        // Pastikan kukus_money_balance memiliki default value 0 di database jika null
+        $currentBalance = $user->kukus_money_balance ?? 0;
+        $user->kukus_money_balance = $currentBalance + $topupAmount;
+        
         $user->save();
 
         return redirect()->back()->with('success', 
