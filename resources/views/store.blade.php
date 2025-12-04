@@ -3,7 +3,7 @@
 @section('content')
 
     {{-- PESAN ERROR JIKA DATABASE KOSONG --}}
-    @if($allGames->isEmpty())
+    @if(isset($allGames) && $allGames->isEmpty())
         <div
             class="bg-red-600 border-4 border-black text-white p-4 mb-8 mx-auto max-w-7xl shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
             <div class="flex items-center gap-4">
@@ -25,7 +25,7 @@
                 Featured & Recommended
             </h2>
 
-            @if($featuredGames->count() > 0)
+            @if(isset($featuredGames) && $featuredGames->count() > 0)
                 @php $feat = $featuredGames->first(); @endphp
 
                 {{-- Container Utama: Putih dengan Border Hitam Tebal --}}
@@ -109,50 +109,52 @@
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                @foreach ($allGames->where('discount_percent', '>', 0)->take(3) as $game)
-                    <div
-                        class="group bg-white border-4 border-black hover:translate-y-[-6px] hover:shadow-[8px_8px_0px_0px_rgba(74,222,128,1)] transition-all duration-200 cursor-pointer">
-                        <a href="{{ route('game.show', $game) }}" class="block h-full flex flex-col relative">
+                @if(isset($allGames))
+                    @foreach ($allGames->where('discount_percent', '>', 0)->take(3) as $game)
+                        <div
+                            class="group bg-white border-4 border-black hover:translate-y-[-6px] hover:shadow-[8px_8px_0px_0px_rgba(74,222,128,1)] transition-all duration-200 cursor-pointer">
+                            <a href="{{ route('game.show', $game) }}" class="block h-full flex flex-col relative">
 
-                            {{-- Badge Deal --}}
-                            <div
-                                class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-black px-3 py-1 border-l-4 border-b-4 border-black z-10">
-                                DEAL
-                            </div>
-
-                            {{-- Gambar --}}
-                            <div class="h-48 overflow-hidden border-b-4 border-black bg-gray-100">
-                                <img src="{{ $game->cover_image }}" alt="{{ $game->title }}"
-                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                            </div>
-
-                            {{-- Info --}}
-                            <div class="p-5 flex-grow flex flex-col justify-between">
-                                <div>
-                                    <h4
-                                        class="text-xl font-black text-black uppercase leading-tight mb-2 line-clamp-1 group-hover:text-blue-700 transition">
-                                        {{ $game->title }}</h4>
-                                    <span
-                                        class="inline-block bg-gray-200 text-black text-[10px] font-bold px-2 py-0.5 border border-black mb-3">{{ $game->genre }}</span>
+                                {{-- Badge Deal --}}
+                                <div
+                                    class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-black px-3 py-1 border-l-4 border-b-4 border-black z-10">
+                                    DEAL
                                 </div>
 
-                                <div class="flex items-center justify-between mt-4 bg-gray-100 p-2 border-2 border-black">
-                                    <span
-                                        class="bg-green-500 text-black font-black text-xl px-2 border-2 border-black">-{{ $game->discount_percent }}%</span>
-                                    <div class="text-right leading-none">
-                                        <div class="text-[10px] text-gray-500 line-through font-bold">
-                                            Rp{{ number_format($game->price, 0, ',', '.') }}</div>
-                                        <div class="text-lg font-black text-black">
-                                            Rp{{ number_format($game->price * (1 - $game->discount_percent / 100), 0, ',', '.') }}
+                                {{-- Gambar --}}
+                                <div class="h-48 overflow-hidden border-b-4 border-black bg-gray-100">
+                                    <img src="{{ $game->cover_image }}" alt="{{ $game->title }}"
+                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                </div>
+
+                                {{-- Info --}}
+                                <div class="p-5 flex-grow flex flex-col justify-between">
+                                    <div>
+                                        <h4
+                                            class="text-xl font-black text-black uppercase leading-tight mb-2 line-clamp-1 group-hover:text-blue-700 transition">
+                                            {{ $game->title }}</h4>
+                                        <span
+                                            class="inline-block bg-gray-200 text-black text-[10px] font-bold px-2 py-0.5 border border-black mb-3">{{ $game->genre }}</span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between mt-4 bg-gray-100 p-2 border-2 border-black">
+                                        <span
+                                            class="bg-green-500 text-black font-black text-xl px-2 border-2 border-black">-{{ $game->discount_percent }}%</span>
+                                        <div class="text-right leading-none">
+                                            <div class="text-[10px] text-gray-500 line-through font-bold">
+                                                Rp{{ number_format($game->price, 0, ',', '.') }}</div>
+                                            <div class="text-lg font-black text-black">
+                                                Rp{{ number_format($game->price * (1 - $game->discount_percent / 100), 0, ',', '.') }}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="mt-2 text-xs text-gray-500 font-bold">Offer ends soon!</div>
-                            </div>
-                        </a>
-                    </div>
-                @endforeach
+                                    <div class="mt-2 text-xs text-gray-500 font-bold">Offer ends soon!</div>
+                                </div>
+                            </a>
+                        </div>
+                    @endforeach
+                @endif
             </div>
         </section>
 
@@ -166,53 +168,55 @@
             </div>
 
             <div class="space-y-3">
-                @foreach ($allGames->take(6) as $game)
-                    <div
-                        class="group flex bg-white border-4 border-black hover:border-blue-500 hover:translate-x-2 transition-all duration-200 overflow-hidden relative h-24 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-
-                        <a href="{{ route('game.show', $game) }}" class="flex w-full items-center">
-                            {{-- Gambar Kecil --}}
-                            <img src="{{ $game->cover_image }}" class="h-24 w-48 object-cover border-r-4 border-black" alt="">
-
-                            {{-- Info --}}
-                            <div class="flex-grow px-6">
-                                <h4 class="font-black text-black text-xl truncate group-hover:text-blue-600 transition">
-                                    {{ $game->title }}</h4>
-                                <div class="flex gap-2 mt-1">
-                                    <span
-                                        class="text-xs font-bold text-gray-500 bg-gray-200 px-2 py-0.5 rounded border border-gray-300">{{ $game->genre }}</span>
-                                    @if(rand(0, 1)) <span
-                                    class="text-xs font-bold text-white bg-black px-2 py-0.5 rounded">WIN</span> @endif
-                                </div>
-                            </div>
-
-                            {{-- Harga --}}
-                            <div class="px-8 text-right min-w-[150px]">
-                                @if($game->discount_percent > 0)
-                                    <div class="text-xs text-gray-400 line-through font-bold">
-                                        Rp{{ number_format($game->price, 0, ',', '.') }}</div>
-                                    <div class="text-green-600 font-black text-xl">
-                                        Rp{{ number_format($game->price * (1 - $game->discount_percent / 100), 0, ',', '.') }}</div>
-                                @else
-                                    <div class="text-black font-black text-xl">Rp{{ number_format($game->price, 0, ',', '.') }}
-                                    </div>
-                                @endif
-                            </div>
-                        </a>
-
-                        {{-- Tombol Cart (Overlay Slide) --}}
+                @if(isset($allGames))
+                    @foreach ($allGames->take(6) as $game)
                         <div
-                            class="absolute right-0 top-0 h-full w-16 bg-black flex items-center justify-center translate-x-full group-hover:translate-x-0 transition-transform duration-200 border-l-4 border-black">
-                            <form action="{{ route('cart.add', $game) }}" method="POST" class="w-full h-full">
-                                @csrf
-                                <button type="submit"
-                                    class="w-full h-full text-white font-black text-3xl hover:bg-green-600 transition flex items-center justify-center">
-                                    +
-                                </button>
-                            </form>
+                            class="group flex bg-white border-4 border-black hover:border-blue-500 hover:translate-x-2 transition-all duration-200 overflow-hidden relative h-24 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+
+                            <a href="{{ route('game.show', $game) }}" class="flex w-full items-center">
+                                {{-- Gambar Kecil --}}
+                                <img src="{{ $game->cover_image }}" class="h-24 w-48 object-cover border-r-4 border-black" alt="">
+
+                                {{-- Info --}}
+                                <div class="flex-grow px-6">
+                                    <h4 class="font-black text-black text-xl truncate group-hover:text-blue-600 transition">
+                                        {{ $game->title }}</h4>
+                                    <div class="flex gap-2 mt-1">
+                                        <span
+                                            class="text-xs font-bold text-gray-500 bg-gray-200 px-2 py-0.5 rounded border border-gray-300">{{ $game->genre }}</span>
+                                        @if(rand(0, 1)) <span
+                                        class="text-xs font-bold text-white bg-black px-2 py-0.5 rounded">WIN</span> @endif
+                                    </div>
+                                </div>
+
+                                {{-- Harga --}}
+                                <div class="px-8 text-right min-w-[150px]">
+                                    @if($game->discount_percent > 0)
+                                        <div class="text-xs text-gray-400 line-through font-bold">
+                                            Rp{{ number_format($game->price, 0, ',', '.') }}</div>
+                                        <div class="text-green-600 font-black text-xl">
+                                            Rp{{ number_format($game->price * (1 - $game->discount_percent / 100), 0, ',', '.') }}</div>
+                                    @else
+                                        <div class="text-black font-black text-xl">Rp{{ number_format($game->price, 0, ',', '.') }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </a>
+
+                            {{-- Tombol Cart (Overlay Slide) --}}
+                            <div
+                                class="absolute right-0 top-0 h-full w-16 bg-black flex items-center justify-center translate-x-full group-hover:translate-x-0 transition-transform duration-200 border-l-4 border-black">
+                                <form action="{{ route('cart.add', $game) }}" method="POST" class="w-full h-full">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full h-full text-white font-black text-3xl hover:bg-green-600 transition flex items-center justify-center">
+                                        +
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                @endif
             </div>
         </section>
 
