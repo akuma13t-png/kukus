@@ -50,6 +50,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex gap-2">
+                                            {{-- PERBAIKAN BUG VIEW: Pastikan rute ke game.show benar --}}
                                             <a href="{{ route('game.show', $game) }}" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs uppercase font-bold" target="_blank">View</a>
                                             
                                             <form action="{{ route('admin.game.approve', $game) }}" method="POST">
@@ -74,10 +75,10 @@
                 </div>
             </div>
 
-            {{-- 2. PUBLISHER REQUESTS --}}
+            {{-- 2. PUBLISHER REQUESTS (TETAP SAMA) --}}
             <div class="bg-[#16202d] overflow-hidden shadow-xl sm:rounded-lg p-6 border-l-4 border-blue-500">
                 <h3 class="text-xl font-black text-white mb-4 uppercase tracking-widest flex items-center gap-2">
-                    <span class="text-2xl">📢</span> Publisher Requests
+                    <span class="text-2xl">👥</span> Publisher Requests
                 </h3>
                  <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-700">
@@ -118,7 +119,7 @@
                 </div>
             </div>
 
-            {{-- 3. REFUND REQUESTS --}}
+            {{-- 3. REFUND REQUESTS (TETAP SAMA) --}}
             <div class="bg-[#16202d] overflow-hidden shadow-xl sm:rounded-lg p-6 border-l-4 border-purple-500">
                 <h3 class="text-xl font-black text-white mb-4 uppercase tracking-widest flex items-center gap-2">
                     <span class="text-2xl">💸</span> Refund Requests

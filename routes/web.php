@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 // --- EXISTING ROUTES ---
 Route::get('/', [GameController::class, 'index'])->name('store.index');
-Route::get('/game/{id}', [GameController::class, 'show'])->name('game.show');
+Route::get('/game/{game}', [GameController::class, 'show'])->name('game.show'); // Gunakan {game} agar sesuai dengan parameter di controller
 Route::get('/search', [GameController::class, 'search'])->name('games.search');
 
 // --- STATIC PAGE ROUTES ---
@@ -22,7 +22,7 @@ Route::get('/stats', [PageController::class, 'stats'])->name('pages.stats');
 
 // --- CART ROUTES ---
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::post('/cart/add/{id}', [CartController::class, 'addToCart'])->name('cart.add');
+Route::post('/cart/add/{game}', [CartController::class, 'addToCart'])->name('cart.add');
 Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
 Route::get('/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
 Route::post('/checkout/process', [CartController::class, 'processPayment'])->name('cart.process');
@@ -42,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // Publisher Request & Game Upload (Role: Publisher Only)
+    // Publisher Request
     Route::post('/request-publisher', function (Illuminate\Http\Request $request) {
         $user = $request->user();
         $user->publisher_request_status = 'pending';
@@ -50,10 +50,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return back()->with('status', 'request-sent');
     })->name('user.request_publisher');
 
-    // Route khusus Publisher untuk Upload Game
+    // Route khusus Publisher untuk Upload, Edit, Delete, dan Tracking Game
     Route::middleware('role:publisher')->group(function() {
+        
+        // --- FITUR BARU: Publisher Dashboard untuk Tracking ---
+        Route::get('/publisher/dashboard', [GameController::class, 'publisherDashboard'])->name('publisher.dashboard');
+
+        // Create
         Route::get('/publish/game', [GameController::class, 'create'])->name('games.create');
         Route::post('/publish/game', [GameController::class, 'store'])->name('games.store');
+        
+        // Edit & Update (Publisher hanya bisa edit game miliknya sendiri - Logic otorisasi ada di Controller)
+        Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
+        Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
+        
+        // Delete Game (Soft delete/hide) - Publisher hanya boleh delete game miliknya
+        // Sebaiknya ditangani dengan logic di controller atau form di dashboard publisher.
+        // Untuk sekarang, kita biarkan hanya Admin yang bisa delete permanen, publisher hanya bisa edit.
+
     });
 
     // --- REFUND ROUTES ---
@@ -61,10 +75,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/support/refunds', [RefundController::class, 'store'])->name('refunds.store');
 });
 
-// --- ADMIN ROUTES ---
+// --- ADMIN ROUTES (Hanya untuk Admin) ---
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
-    Route::get('/admin/history', [AdminController::class, 'history'])->name('admin.history'); // Route History Baru
+    Route::get('/admin/history', [AdminController::class, 'history'])->name('admin.history');
     
     // Publisher Actions
     Route::post('/admin/approve/{user}', [AdminController::class, 'approvePublisher'])->name('admin.approvePublisher');
@@ -78,9 +92,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/refund/{id}/approve', [AdminController::class, 'approveRefund'])->name('admin.refund.approve');
     Route::post('/admin/refund/{id}/reject', [AdminController::class, 'rejectRefund'])->name('admin.refund.reject');
     
-    // Game Management (Edit/Delete existing)
-    Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
-    Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
+    // Game Management (Delete permanen oleh Admin)
     Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
 });
 

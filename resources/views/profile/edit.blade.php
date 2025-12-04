@@ -41,8 +41,8 @@
                     </div>
                 </div>
 
-            @elseif(Auth::user()->role === 'publisher')
-                {{-- PUBLISHER: Kotak Dashboard Publisher (NEW BUTTON) --}}
+            @elseif(Auth::user()->role === 'publisher' || Auth::user()->role === 'admin')
+                {{-- PUBLISHER/ADMIN: Kotak Dashboard Publisher --}}
                 <div class="p-8 bg-gradient-to-r from-[#16202d] to-[#1e2a3a] border-t-4 border-green-500 shadow-2xl relative overflow-hidden">
                     {{-- Background Decoration --}}
                     <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
@@ -51,16 +51,22 @@
 
                     <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                         <div>
-                            <h3 class="text-2xl font-black text-white mb-1 uppercase tracking-widest">Publisher Dashboard</h3>
+                            <h3 class="text-2xl font-black text-white mb-1 uppercase tracking-widest">
+                                @if(Auth::user()->role === 'admin') Admin / @endif Publisher Dashboard
+                            </h3>
                             <p class="text-green-400 font-bold text-sm">✅ Verified Account: {{ Auth::user()->name }}</p>
-                            <p class="text-gray-400 text-xs mt-2 max-w-md">You can upload new games, manage your listings, and view sales statistics.</p>
+                            <p class="text-gray-400 text-xs mt-2 max-w-md">Manage your uploaded content and check approval status.</p>
                         </div>
                         
-                        {{-- TOMBOL UPLOAD BESAR --}}
-                        <a href="{{ route('games.create') }}" class="group relative inline-flex items-center justify-center px-8 py-4 font-black text-white transition-all duration-200 bg-green-600 font-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 rounded shadow-[0_0_15px_rgba(34,197,94,0.5)] hover:shadow-[0_0_25px_rgba(34,197,94,0.8)] hover:-translate-y-1">
-                            <span class="mr-3 text-2xl">+</span>
-                            <span class="uppercase tracking-widest">Upload New Game</span>
-                        </a>
+                        {{-- TOMBOL DASHBOARD & UPLOAD --}}
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <a href="{{ route('publisher.dashboard') }}" class="group relative inline-flex items-center justify-center px-6 py-3 font-black text-white transition-all duration-200 bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 rounded shadow-lg hover:-translate-y-1 text-sm uppercase tracking-widest">
+                                <span>Manage Games</span>
+                            </a>
+                            <a href="{{ route('games.create') }}" class="group relative inline-flex items-center justify-center px-6 py-3 font-black text-white transition-all duration-200 bg-green-600 hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 rounded shadow-lg hover:-translate-y-1 text-sm uppercase tracking-widest">
+                                <span class="mr-2 text-xl">+</span> Upload Game
+                            </a>
+                        </div>
                     </div>
                 </div>
             @endif

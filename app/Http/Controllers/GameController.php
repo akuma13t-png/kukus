@@ -11,12 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class GameController extends Controller
 {
-    // ... method index, search, show, addToCart, libraryIndex, storeShelf TETAP SAMA ...
-    
-    // (Copy paste method lama yang tidak diubah di sini jika mau full file, 
-    // tapi untuk hemat token saya hanya tulis method baru/update sesuai instruksi "Diff" atau "Full File"
-    // Saya akan tulis FULL FILE agar aman dan tidak error)
-
     public function index()
     {
         $featuredGames = Game::where('is_featured', true)
@@ -82,6 +76,7 @@ class GameController extends Controller
 
     public function libraryIndex()
     {
+        // Simulasi: user memiliki semua game yang disetujui (is_approved=true)
         $ownedGames = Game::where('is_approved', true)->get();
         $userShelves = Shelf::where('user_id', Auth::id())->with('games')->get();
         return view('library', compact('ownedGames', 'userShelves'));
@@ -123,14 +118,13 @@ class GameController extends Controller
     // --- BARU: Method Store Game (Proses Upload) ---
     public function store(Request $request)
     {
-        // Validasi input
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required',
             'price' => 'required|numeric|min:0',
             'genre' => 'required|string',
             'cover_image' => 'required|image|max:2048', // Max 2MB
-            'screenshots.*' => 'image|max:2048', // Multiple images
+            'screenshots.*' => 'nullable|image|max:2048', // Multiple images
             'trailer_video' => 'nullable|mimetypes:video/mp4,video/avi,video/mpeg|max:20000', // Max 20MB
         ]);
 
@@ -163,14 +157,14 @@ class GameController extends Controller
             'publisher' => Auth::user()->name, // Publisher adalah user yg login
             'release_date' => now(),
             'cover_image' => $coverUrl,
-            'screenshots' => $screenshotUrls, // Disimpan sebagai JSON otomatis karena casting di model
+            'screenshots' => $screenshotUrls,
             'trailer_url' => $trailerUrl,
             'is_approved' => false, // Default pending
             'is_featured' => false,
             'discount_percent' => 0
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Game berhasil diupload! Menunggu persetujuan Admin.');
+        return redirect()->route('publisher.dashboard')->with('success', 'Game berhasil diupload! Menunggu persetujuan Admin.');
     }
 
     public function edit(Game $game)
@@ -181,13 +175,28 @@ class GameController extends Controller
     public function update(Request $request, Game $game)
     {
         // Logic update sederhana (bisa dikembangkan nanti)
-        $game->update($request->only(['title', 'description', 'price', 'genre', 'cover_image']));
-        return redirect()->route('game.show', $game)->with('success', 'Game updated');
+        // Kita paksa is_approved menjadi false lagi setelah update untuk review ulang
+        $game->update(array_merge($request->only(['title', 'description', 'price', 'genre', 'cover_image']), ['is_approved' => false]));
+        
+        return redirect()->route('publisher.dashboard')->with('success', 'Game berhasil diupdate! Menunggu review ulang Admin.');
     }
 
     public function destroy(Game $game)
     {
         $game->delete();
         return redirect()->route('admin.dashboard')->with('success', 'Game dihapus');
+    }
+
+    // --- FITUR BARU: PUBLISHER DASHBOARD ---
+    public function publisherDashboard()
+    {
+        // Ambil game yang diupload oleh user yang sedang login (berdasarkan nama publisher)
+        // Catatan: Sebaiknya menggunakan user_id, tapi karena struktur DB yang ada
+        // hanya menyimpan nama publisher, kita gunakan nama.
+        $userGames = Game::where('publisher', Auth::user()->name)
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+
+        return view('games.publisher-dashboard', compact('userGames'));
     }
 }
