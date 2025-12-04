@@ -11,11 +11,12 @@
             {{-- TOMBOL KEMBALI --}}
             <a href="{{ route('store.index') }}" class="text-gray-400 hover:text-white text-sm mb-4 inline-block">&larr; Back to Store</a>
 
-            {{-- 1. BAGIAN REQUEST PUBLISHER (KHUSUS USER) --}}
+            {{-- 1. BAGIAN PUBLISHER / CREATOR DASHBOARD (UPDATE) --}}
             @if(Auth::user()->role === 'user')
+                {{-- User Biasa: Kotak Request Publisher --}}
                 <div class="p-6 bg-[#16202d] border border-[#66c0f4] shadow-lg rounded-lg">
                     <h3 class="text-lg font-bold text-[#66c0f4] mb-2 uppercase tracking-wide">Become a Creator</h3>
-                    <div class="flex justify-between items-center">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                         <p class="text-gray-300 text-sm">Want to publish your own games on SteamClone? Apply for a publisher account today.</p>
                         
                         @if(Auth::user()->publisher_request_status === 'pending')
@@ -23,9 +24,12 @@
                                 ⏳ Request Pending
                             </span>
                         @elseif(Auth::user()->publisher_request_status === 'rejected')
-                            <span class="bg-red-600 text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider">
-                                ❌ Request Rejected
-                            </span>
+                            <div class="text-right">
+                                <span class="bg-red-600 text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider block mb-1">
+                                    ❌ Request Rejected
+                                </span>
+                                <p class="text-[10px] text-gray-500">Contact admin for details.</p>
+                            </div>
                         @else
                             <form action="{{ route('user.request_publisher') }}" method="POST">
                                 @csrf
@@ -36,41 +40,64 @@
                         @endif
                     </div>
                 </div>
+
             @elseif(Auth::user()->role === 'publisher')
-                <div class="p-4 bg-green-900/30 border border-green-500 rounded text-green-400 text-sm font-bold text-center">
-                    ✅ You are a verified Publisher. Access your game dashboard to publish titles.
+                {{-- PUBLISHER: Kotak Dashboard Publisher (NEW BUTTON) --}}
+                <div class="p-8 bg-gradient-to-r from-[#16202d] to-[#1e2a3a] border-t-4 border-green-500 shadow-2xl relative overflow-hidden">
+                    {{-- Background Decoration --}}
+                    <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
+                        <svg width="200" height="200" viewBox="0 0 24 24" fill="currentColor" class="text-white transform rotate-12 translate-x-10 -translate-y-10"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                    </div>
+
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div>
+                            <h3 class="text-2xl font-black text-white mb-1 uppercase tracking-widest">Publisher Dashboard</h3>
+                            <p class="text-green-400 font-bold text-sm">✅ Verified Account: {{ Auth::user()->name }}</p>
+                            <p class="text-gray-400 text-xs mt-2 max-w-md">You can upload new games, manage your listings, and view sales statistics.</p>
+                        </div>
+                        
+                        {{-- TOMBOL UPLOAD BESAR --}}
+                        <a href="{{ route('games.create') }}" class="group relative inline-flex items-center justify-center px-8 py-4 font-black text-white transition-all duration-200 bg-green-600 font-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 rounded shadow-[0_0_15px_rgba(34,197,94,0.5)] hover:shadow-[0_0_25px_rgba(34,197,94,0.8)] hover:-translate-y-1">
+                            <span class="mr-3 text-2xl">+</span>
+                            <span class="uppercase tracking-widest">Upload New Game</span>
+                        </a>
+                    </div>
                 </div>
             @endif
 
-            {{-- 2. FORM EDIT PROFILE (TERMASUK GAMBAR) --}}
+            {{-- 2. FORM EDIT PROFILE (Existing) --}}
             <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-700">
                 <div class="max-w-xl">
                     @include('profile.partials.update-profile-information-form')
                 </div>
             </div>
 
-            {{-- 3. UPDATE PASSWORD --}}
+            {{-- 3. UPDATE PASSWORD (Existing) --}}
             <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-700">
                 <div class="max-w-xl">
                     @include('profile.partials.update-password-form')
                 </div>
             </div>
 
-            {{-- 4. DELETE ACCOUNT --}}
+            {{-- 4. DELETE ACCOUNT (Existing) --}}
             <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg border border-gray-700">
                 <div class="max-w-xl">
                     @include('profile.partials.delete-user-form')
                 </div>
             </div>
 
-            {{-- 5. ADMIN PANEL SHORTCUT (KHUSUS ADMIN) - DI PALING BAWAH --}}
+            {{-- 5. ADMIN PANEL SHORTCUT (Existing) --}}
             @if(Auth::user()->role === 'admin')
                 <div class="mt-12 border-t-4 border-red-900 pt-8 text-center">
                     <h3 class="text-red-500 font-black text-2xl uppercase mb-4">⚠️ Administrator Zone</h3>
-                    <a href="{{ route('admin.dashboard') }}" class="inline-block bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-12 rounded shadow-[0_0_20px_rgba(220,38,38,0.5)] uppercase tracking-widest transition transform hover:scale-105">
-                        Access Admin Panel
-                    </a>
-                    <p class="text-gray-500 text-xs mt-4">Restricted access. Only for authorized personnel.</p>
+                    <div class="flex justify-center gap-4">
+                        <a href="{{ route('admin.dashboard') }}" class="inline-block bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-8 rounded shadow-lg uppercase tracking-widest transition transform hover:scale-105">
+                            Access Admin Panel
+                        </a>
+                        <a href="{{ route('admin.history') }}" class="inline-block bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-8 rounded shadow-lg uppercase tracking-widest transition transform hover:scale-105">
+                            View Audit History
+                        </a>
+                    </div>
                 </div>
             @endif
 

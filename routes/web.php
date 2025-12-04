@@ -3,7 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\LibraryController; // Pastikan ini di-import
+use App\Http\Controllers\LibraryController; 
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\CartController;
@@ -34,8 +34,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
-    // --- LIBRARY & SHELF ROUTES (DIPERBAIKI) ---
-    // Menggunakan LibraryController yang baru dibuat
     Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
     Route::post('/shelf', [LibraryController::class, 'storeShelf'])->name('shelf.store');
 
@@ -44,13 +42,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // Publisher Request
+    // Publisher Request & Game Upload (Role: Publisher Only)
     Route::post('/request-publisher', function (Illuminate\Http\Request $request) {
         $user = $request->user();
         $user->publisher_request_status = 'pending';
         $user->save();
         return back()->with('status', 'request-sent');
     })->name('user.request_publisher');
+
+    // Route khusus Publisher untuk Upload Game
+    Route::middleware('role:publisher')->group(function() {
+        Route::get('/publish/game', [GameController::class, 'create'])->name('games.create');
+        Route::post('/publish/game', [GameController::class, 'store'])->name('games.store');
+    });
 
     // --- REFUND ROUTES ---
     Route::get('/support/refunds', [RefundController::class, 'create'])->name('refunds.create');
@@ -60,18 +64,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // --- ADMIN ROUTES ---
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/history', [AdminController::class, 'history'])->name('admin.history'); // Route History Baru
     
     // Publisher Actions
     Route::post('/admin/approve/{user}', [AdminController::class, 'approvePublisher'])->name('admin.approvePublisher');
     Route::post('/admin/reject/{user}', [AdminController::class, 'rejectPublisher'])->name('admin.rejectPublisher');
     
+    // Game Approval Actions
+    Route::post('/admin/game/{game}/approve', [AdminController::class, 'approveGame'])->name('admin.game.approve');
+    Route::post('/admin/game/{game}/reject', [AdminController::class, 'rejectGame'])->name('admin.game.reject');
+
     // Refund Actions
     Route::post('/admin/refund/{id}/approve', [AdminController::class, 'approveRefund'])->name('admin.refund.approve');
     Route::post('/admin/refund/{id}/reject', [AdminController::class, 'rejectRefund'])->name('admin.refund.reject');
     
-    // Game Management
-    Route::get('/games/create', [GameController::class, 'create'])->name('games.create');
-    Route::post('/games', [GameController::class, 'store'])->name('games.store');
+    // Game Management (Edit/Delete existing)
     Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
     Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
     Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
