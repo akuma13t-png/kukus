@@ -15,28 +15,31 @@ class GameController extends Controller
      */
     public function index()
     {
-        // Hanya ambil data untuk display depan
-        $featuredGames = Game::where('is_featured', true)->inRandomOrder()->take(3)->get();
-        $allGames = Game::take(12)->get(); // Ambil 12 game sembarang untuk list bawah
+        // UPDATE: Filter hanya game yang is_approved = true
+        $featuredGames = Game::where('is_featured', true)
+                             ->where('is_approved', true) // Filter Approved
+                             ->inRandomOrder()
+                             ->take(3)->get();
+                             
+        $allGames = Game::where('is_approved', true) // Filter Approved
+                        ->take(12)->get();
 
         return view('store', compact('featuredGames', 'allGames'));
     }
 
     /**
-     * Halaman Pencarian & Filter (Search Page)
+     * Halaman Pencarian & Filter
      */
     public function search(Request $request)
     {
-        $query = Game::query();
+        // UPDATE: Mulai query dengan filter approved
+        $query = Game::where('is_approved', true);
 
-        // 1. Filter Judul (Search Bar)
         if ($request->filled('q')) {
             $query->where('title', 'like', '%' . $request->input('q') . '%');
         }
 
-        // 2. Filter Genre (Sidebar - Checkbox/Link)
         if ($request->filled('genre')) {
-            // Jika genre berupa array (checkbox), gunakan whereIn
             if (is_array($request->input('genre'))) {
                 $query->whereIn('genre', $request->input('genre'));
             } else {
@@ -44,7 +47,6 @@ class GameController extends Controller
             }
         }
 
-        // 3. Filter Harga
         if ($request->filled('price')) {
             if ($request->input('price') == 'free') {
                 $query->where('price', 0);
@@ -53,18 +55,23 @@ class GameController extends Controller
             }
         }
 
-        // Ambil hasil
-        $games = $query->paginate(15)->withQueryString(); // Gunakan pagination biar rapi
+        $games = $query->paginate(15)->withQueryString();
 
         return view('search', compact('games'));
     }
 
-    // ... Fungsi show(), addToCart(), libraryIndex() biarkan seperti sebelumnya ...
     public function show(Game $game)
     {
+        // Logic: Jika game belum diapprove, hanya Admin atau pemilik (nanti) yang bisa lihat
+        if (!$game->is_approved) {
+             if (!Auth::check() || !Auth::user()->isAdmin()) {
+                 abort(404);
+             }
+        }
         return view('game_detail', compact('game'));
     }
 
+    // ... (Fungsi addToCart, libraryIndex, storeShelf BIARKAN SEPERTI SEBELUMNYA) ...
     public function addToCart(Game $game)
     {
         $cart = Session::get('cart', []);
@@ -76,49 +83,76 @@ class GameController extends Controller
     }
 
     public function libraryIndex()
-{
-    // 1. Ambil semua game (untuk list utama)
-    $ownedGames = \App\Models\Game::all();
-
-    // 2. AMBIL SHELF DARI DATABASE (Agar tidak hilang saat refresh)
-    // Kita ambil shelf milik user yang login, beserta isi gamenya
-    $userShelves = Shelf::where('user_id', Auth::id())
-                        ->with('games') // Load relasi games
-                        ->get();
-
-    return view('library', compact('ownedGames', 'userShelves'));
-}
-
-   public function storeShelf(Request $request)
-{
-    // 1. Buat Shelf (Wadah Rak)
-    $shelf = Shelf::create([
-        'user_id' => Auth::id(),
-        'name' => $request->name,
-        'type' => $request->mode, // 'manual' atau 'dynamic'
-        'criteria' => $request->genre, // Simpan genre (misal: RPG)
-    ]);
-
-    // 2. LOGIKA FILTER (Ini yang memperbaiki masalah game masuk semua)
-    
-    // KASUS A: Jika User memilih MANUAL
-    if ($request->mode === 'manual') {
-        // Cek apakah ada game yang dicentang?
-        if ($request->has('selected_games')) {
-            // HANYA masukkan game yang ID-nya dikirim dari form
-            $shelf->games()->attach($request->selected_games);
-        }
-    } 
-    // KASUS B: Jika User memilih DYNAMIC (Otomatis)
-    elseif ($request->mode === 'dynamic') {
-        // Cari game yang genrenya SAMA dengan yang dipilih
-        $gameIds = \App\Models\Game::where('genre', $request->genre)->pluck('id');
-        
-        // Masukkan game hasil filter tersebut ke shelf
-        $shelf->games()->attach($gameIds);
+    {
+        // Hanya ambil game yang approved untuk library umum (kecuali logic library user spesifik)
+        $ownedGames = \App\Models\Game::where('is_approved', true)->get();
+        $userShelves = Shelf::where('user_id', Auth::id())->with('games')->get();
+        return view('library', compact('ownedGames', 'userShelves'));
     }
 
-    return redirect()->back()->with('success', 'Shelf berhasil dibuat!');
-}
+   public function storeShelf(Request $request)
+    {
+        $shelf = Shelf::create([
+            'user_id' => Auth::id(),
+            'name' => $request->name,
+            'type' => $request->mode,
+            'criteria' => $request->genre,
+        ]);
+    
+        if ($request->mode === 'manual') {
+            if ($request->has('selected_games')) {
+                $shelf->games()->attach($request->selected_games);
+            }
+        } 
+        elseif ($request->mode === 'dynamic') {
+            $gameIds = \App\Models\Game::where('genre', $request->genre)->pluck('id');
+            $shelf->games()->attach($gameIds);
+        }
+    
+        return redirect()->back()->with('success', 'Shelf berhasil dibuat!');
+    }
 
+    // --- TAMBAHAN BARU UNTUK PUBLISHER ---
+
+    // 1. Request jadi Publisher
+    public function requestPublisher()
+    {
+        $user = Auth::user();
+        if ($user->role === 'admin' || $user->role === 'publisher') {
+            return back()->with('info', 'You are already a publisher.');
+        }
+
+        $user->update(['publisher_request_status' => 'pending']);
+        return back()->with('success', 'Request sent to Admin. Please wait for approval.');
+    }
+
+    // 2. Halaman Edit Game
+    public function edit(Game $game)
+    {
+        // Cek permission: Hanya Publisher/Admin
+        if (!Auth::user()->isPublisher() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+        return view('games.edit', compact('game'));
+    }
+
+    // 3. Simpan Perubahan Game
+    public function update(Request $request, Game $game)
+    {
+        if (!Auth::user()->isPublisher() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',a
+            'description' => 'required',
+            'price' => 'required|numeric',
+            'genre' => 'required|string',
+            'cover_image' => 'required|url',
+        ]);
+
+        $game->update($validated);
+
+        return redirect()->route('game.show', $game)->with('success', 'Game updated successfully!');
+    }
 }

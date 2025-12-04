@@ -1,77 +1,56 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\GameController; // Pastikan ini ada
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\AdminController; // Import AdminController
 use Illuminate\Support\Facades\Route;
 
-// 1. GANTI ROUTE UTAMA (/) ke GameController Anda
+// --- PUBLIC ROUTES ---
 Route::get('/', [GameController::class, 'index'])->name('store.index');
-
-// Tambahkan atau pastikan route ini ada
 Route::get('/game/{game}', [GameController::class, 'show'])->name('game.show');
+Route::get('/search', [GameController::class, 'search'])->name('games.search');
 
-// Keranjang Belanja
-Route::post('/cart/add/{game}', [GameController::class, 'addToCart'])->name('cart.add');
-Route::get('/cart', [GameController::class, 'viewCart'])->name('cart.view');
-
-// 2. UBAH ROUTE DASHBOARD agar mengarah ke toko (setelah login)
-Route::get('/dashboard', [GameController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-// Panggil GameController, tapi pastikan hanya diakses jika pengguna sudah login (middleware('auth'))
-Route::get('/library', [GameController::class, 'libraryIndex'])
-    ->middleware('auth')
-    ->name('library.index');
-
+// --- AUTHENTICATED USERS ROUTES ---
 Route::middleware('auth')->group(function () {
+    // Dashboard User (Arahkan ke store atau custom dashboard)
+    Route::get('/dashboard', [GameController::class, 'index'])->name('dashboard');
+    
+    // Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Library & Cart
+    Route::get('/library', [GameController::class, 'libraryIndex'])->name('library.index');
+    Route::post('/library/shelf', [GameController::class, 'storeShelf'])->name('shelf.store');
+    
+    // Cart Routes
+    Route::post('/cart/add/{game}', [GameController::class, 'addToCart'])->name('cart.add');
+    Route::get('/cart', [GameController::class, 'viewCart'])->name('cart.view'); // Pastikan method viewCart ada di Controller jika dipakai
+
+    // Request Publisher
+    Route::post('/request-publisher', [GameController::class, 'requestPublisher'])->name('user.request_publisher');
 });
 
-// Route Utama (Store Front - Landing Page)
-Route::get('/', [GameController::class, 'index'])->name('store.index');
+// --- PUBLISHER ROUTES ---
+Route::middleware(['auth'])->group(function () {
+    // Edit Game
+    Route::get('/game/{game}/edit', [GameController::class, 'edit'])->name('game.edit');
+    Route::put('/game/{game}', [GameController::class, 'update'])->name('game.update');
+});
 
-// Route Baru (Halaman Pencarian Khusus)
-Route::get('/search', [GameController::class, 'search'])->name('games.search');
+// --- ADMIN ROUTES ---
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    
+    // Manage Users
+    Route::post('/approve-publisher/{user}', [AdminController::class, 'approvePublisher'])->name('approve_publisher');
+    Route::post('/reject-publisher/{user}', [AdminController::class, 'rejectPublisher'])->name('reject_publisher');
+    Route::delete('/ban-user/{user}', [AdminController::class, 'banUser'])->name('ban_user');
 
-Route::post('/library/shelf', [GameController::class, 'storeShelf'])
-    ->middleware('auth')
-    ->name('shelf.store');
-
-    // Tambahkan di dalam group auth atau di bawah route library
-Route::post('/library/shelf', [GameController::class, 'storeShelf'])
-    ->middleware('auth')
-    ->name('shelf.store');
-
-// Route Lainnya (Biarkan tetap ada)
-// ...
-
-// --- SOLUSI DARURAT UNTUK MENGISI DATA GAME ---
-Route::get('/fix-data', function () {
-    // 1. Hapus data lama (Reset)
-    \App\Models\Game::truncate();
-
-    // 2. Buat Data Manual (Tanpa Factory agar tidak error)
-    $titles = ['Galactic Wars', 'Ancient Legends', 'Cyber Punk 2099', 'Farm Simulator', 'Zombie Attack', 'Speed Racer', 'Magic World'];
-    $genres = ['Action', 'RPG', 'Sci-Fi', 'Simulation', 'Horror', 'Racing', 'Fantasy'];
-
-    for ($i = 0; $i < 7; $i++) {
-        \App\Models\Game::create([
-            'title' => $titles[$i],
-            'description' => 'Deskripsi seru untuk game ' . $titles[$i],
-            'price' => rand(50000, 500000),
-            'genre' => $genres[$i],
-            'publisher' => 'SteamClone Studio',
-            'release_date' => now(),
-            'cover_image' => 'https://picsum.photos/400/200?random=' . ($i + 1),
-            'is_featured' => rand(0, 1),
-            'discount_percent' => rand(0, 1) ? rand(10, 50) : 0,
-        ]);
-    }
-
-    return "BERHASIL! 7 Game telah ditambahkan manual. <a href='/'>Kembali ke Toko</a>";
+    // Manage Games
+    Route::post('/approve-game/{game}', [AdminController::class, 'approveGame'])->name('approve_game');
+    Route::delete('/reject-game/{game}', [AdminController::class, 'rejectGame'])->name('reject_game');
 });
 
 require __DIR__ . '/auth.php';

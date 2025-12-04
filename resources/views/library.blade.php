@@ -18,7 +18,7 @@
                 </span>
             </div>
             
-            {{-- TOMBOL NEW SHELF (Sekarang pasti jalan karena fungsinya ada di bawah) --}}
+            {{-- TOMBOL NEW SHELF --}}
             <button onclick="openNewShelfModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 border border-transparent hover:border-blue-400 shadow-lg transition text-xs tracking-widest flex items-center gap-2">
                 <span class="text-lg leading-none">+</span> NEW SHELF
             </button>
@@ -27,58 +27,37 @@
         {{-- AREA MULTI-RAK --}}
         <div id="shelves-container" class="space-y-12 perspective-container">
             
-            {{-- Panggil Component Shelf (Pastikan file components/shelf.blade.php sudah ada) --}}
-            @include('components.shelf', ['title' => 'FAVORITES', 'games' => $ownedGames->take(4), 'id' => 'shelf-template'])
-            @include('components.shelf', ['title' => 'RPG COLLECTION', 'games' => $ownedGames->where('genre', 'RPG')])
-            
-            {{-- Rak Template untuk Kloning JS --}}
-            <div id="main-shelf-template">
-                @include('components.shelf', ['title' => 'ALL GAMES', 'games' => $ownedGames])
-            </div>
+            {{-- Flash Message Success --}}
+            @if(session('success'))
+                <div class="bg-green-600 text-white p-4 rounded shadow-lg border-l-4 border-green-400 mb-8">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            {{-- 1. Tampilkan Rak User (Dari Database) --}}
+            @forelse($userShelves as $shelf)
+                @include('components.shelf', ['title' => strtoupper($shelf->name), 'games' => $shelf->games])
+            @empty
+                {{-- Jika tidak ada shelf user, tidak tampil apa-apa --}}
+            @endforelse
+
+            {{-- 2. Tampilkan Rak Default --}}
+            @include('components.shelf', ['title' => 'ALL GAMES', 'games' => $ownedGames])
 
         </div>
-
-        <div class="mt-12 space-y-8">
-    <h2 class="text-2xl font-bold text-white border-b border-gray-600 pb-2">My Collections</h2>
-
-    @forelse($userShelves as $shelf)
-        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            
-            {{-- Header Shelf --}}
-            <div class="flex items-center gap-4 mb-4">
-                <h3 class="text-xl font-bold text-[#3b9de9]">{{ $shelf->name }}</h3>
-                @if($shelf->type == 'dynamic')
-                    <span class="text-xs bg-yellow-600 text-white px-2 py-1 rounded">
-                        ⚡ Auto: {{ $shelf->criteria }}
-                    </span>
-                @else
-                    <span class="text-xs bg-gray-600 text-white px-2 py-1 rounded">
-                        🖐 Manual
-                    </span>
-                @endif
-            </div>
-
-            {{-- Isi Game dalam Shelf --}}
-            <div class="flex flex-wrap gap-4">
-                @forelse($shelf->games as $game)
-                    <div class="w-32 group relative">
-                        <img src="{{ $game->cover_image }}" class="w-full h-44 object-cover rounded shadow-lg group-hover:scale-105 transition duration-300">
-                        <div class="mt-2 text-center">
-                            <p class="text-gray-300 text-xs font-bold truncate">{{ $game->title }}</p>
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-gray-500 text-sm italic">Belum ada game yang cocok dengan kriteria ini.</p>
-                @endforelse
-            </div>
-
-        </div>
-    @empty
-        <p class="text-gray-500">Belum ada koleksi yang dibuat.</p>
-    @endforelse
-</div>
-
     </main>
+
+    {{-- =================================================================== --}}
+    {{-- FORM TERSEMBUNYI UNTUK SUBMIT DATA KE SERVER --}}
+    {{-- =================================================================== --}}
+    <form id="createShelfForm" action="{{ route('shelf.store') }}" method="POST" class="hidden">
+        @csrf
+        <input type="hidden" name="name" id="formShelfName">
+        <input type="hidden" name="mode" id="formShelfMode">
+        <input type="hidden" name="genre" id="formShelfGenre">
+        <div id="formSelectedGamesContainer"></div> {{-- Wadah checkbox hidden --}}
+    </form>
+
 
     {{-- =================================================================== --}}
     {{-- MODAL 1: NEW COLLECTION (Input Nama & Pilih Tipe) --}}
@@ -100,12 +79,10 @@
 
                 <label class="block text-[#67c1f5] text-xs font-bold mb-4 uppercase tracking-wider">COLLECTION TYPE</label>
                 <div class="grid grid-cols-2 gap-6">
-                    {{-- Tombol ke Manual Picker --}}
                     <button onclick="proceedToGamePicker()" class="group text-left bg-[#263242] hover:bg-[#3d4d5d] border border-transparent hover:border-gray-500 p-0 transition flex flex-col h-full shadow-lg">
                         <div class="bg-[#3d4d5d] group-hover:bg-[#4b5c6d] text-white font-bold text-center py-3 uppercase tracking-wider transition border-b border-black">CREATE COLLECTION</div>
                         <div class="p-4 text-gray-400 text-sm flex-grow leading-relaxed">Manually select specific games to add to this collection.</div>
                     </button>
-                    {{-- Tombol ke Dynamic Filter --}}
                     <button onclick="proceedToDynamicFilter()" class="group text-left bg-[#263242] hover:bg-[#3d4d5d] border border-transparent hover:border-gray-500 p-0 transition flex flex-col h-full shadow-lg">
                         <div class="bg-blue-900 group-hover:bg-blue-800 text-white font-bold text-center py-3 uppercase tracking-wider flex items-center justify-center gap-2 border-b border-black"><span class="text-yellow-400">⚡</span> DYNAMIC</div>
                         <div class="p-4 text-gray-400 text-sm flex-grow leading-relaxed">Collection updates automatically based on filters like Genre.</div>
@@ -148,13 +125,9 @@
             <div class="p-8 bg-[#16202d]">
                 <label class="block text-blue-400 text-xs font-bold mb-4 uppercase tracking-wider">SELECT A GENRE</label>
                 <select id="dynamicGenreSelect" class="w-full bg-[#1b2838] text-white border-2 border-gray-600 p-3 font-bold focus:border-blue-500 outline-none">
-                    <option value="Action">Action</option>
-                    <option value="RPG">RPG</option>
-                    <option value="Strategy">Strategy</option>
-                    <option value="Simulation">Simulation</option>
-                    <option value="Adventure">Adventure</option>
-                    <option value="Horror">Horror</option>
-                    <option value="Racing">Racing</option>
+                    @foreach($ownedGames->pluck('genre')->unique() as $genre)
+                        <option value="{{ $genre }}">{{ $genre }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="p-6 bg-[#212b36] border-t border-black flex justify-end">
@@ -170,7 +143,6 @@
         <div class="absolute inset-0 bg-black/90 backdrop-blur-md opacity-0 transition-opacity duration-300 pointer-events-auto" id="modalBackdrop" onclick="closeBook()"></div>
         <div class="absolute inset-0 flex items-center justify-center p-4">
             <div id="modalCard" class="bg-white w-full max-w-5xl h-[600px] border-8 border-black shadow-[0_0_100px_rgba(0,0,0,1)] flex flex-col md:flex-row overflow-hidden transform scale-90 opacity-0 translate-y-20 transition-all duration-500 pointer-events-auto">
-                {{-- Kiri --}}
                 <div class="w-full md:w-5/12 bg-black relative overflow-hidden group">
                     <img id="mCover" src="" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition duration-700 group-hover:scale-105">
                     <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
@@ -179,7 +151,6 @@
                         <h2 id="mTitle" class="text-4xl font-black text-white uppercase leading-none drop-shadow-lg filter">TITLE</h2>
                     </div>
                 </div>
-                {{-- Kanan --}}
                 <div class="w-full md:w-7/12 p-10 flex flex-col relative bg-[#f0f0f0]">
                     <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: url('https://www.transparenttextures.com/patterns/paper.png');"></div>
                     <button onclick="closeBook()" class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center border-4 border-black hover:bg-black hover:text-white transition font-black text-xl z-20">X</button>
@@ -215,7 +186,6 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #000; border: 2px solid #333; border-radius: 4px; }
 </style>
 
-{{-- JS LOGIC --}}
 @push('scripts')
 <script>
     // DATA GLOBAL
@@ -239,46 +209,54 @@
         shadow.style.opacity = 0;
     }
 
-    // --- LOGIKA MODAL 1: NEW COLLECTION ---
-    function openNewShelfModal() {
-        const modal = document.getElementById('newShelfModal');
-        const backdrop = document.getElementById('newShelfBackdrop');
-        const card = document.getElementById('newShelfCard');
-        const input = document.getElementById('shelfNameInput');
-
-        modal.classList.remove('hidden');
-        input.value = '';
+    // --- MODAL UTILITIES ---
+    function toggleModal(id, show) {
+        const modal = document.getElementById(id);
+        const backdrop = modal.querySelector('div[id$="Backdrop"]'); // Mencari elemen backdrop anak
+        const card = modal.querySelector('div[id$="Card"]');       // Mencari elemen card anak
         
-        requestAnimationFrame(() => {
-            backdrop.classList.remove('opacity-0');
-            card.classList.remove('opacity-0', 'scale-95');
-            input.focus();
-        });
+        if (show) {
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                backdrop.classList.remove('opacity-0');
+                card.classList.remove('opacity-0', 'scale-95');
+            });
+        } else {
+            backdrop.classList.add('opacity-0');
+            card.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
     }
 
-    function closeNewShelfModal() {
-        const modal = document.getElementById('newShelfModal');
-        const backdrop = document.getElementById('newShelfBackdrop');
-        const card = document.getElementById('newShelfCard');
-        backdrop.classList.add('opacity-0');
-        card.classList.add('opacity-0', 'scale-95');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    function openNewShelfModal() {
+        document.getElementById('shelfNameInput').value = '';
+        toggleModal('newShelfModal', true);
+        setTimeout(() => document.getElementById('shelfNameInput').focus(), 100);
     }
+    function closeNewShelfModal() { toggleModal('newShelfModal', false); }
 
-    // --- LOGIKA MODAL 2: GAME PICKER ---
+    function openGamePicker() { toggleModal('gamePickerModal', true); }
+    function closeGamePicker() { toggleModal('gamePickerModal', false); }
+
+    function openDynamicFilter() { toggleModal('dynamicFilterModal', true); }
+    function closeDynamicFilter() { toggleModal('dynamicFilterModal', false); }
+
+    // --- LOGIC FORM & STEP ---
+
     function proceedToGamePicker() {
         const name = document.getElementById('shelfNameInput').value;
         if(!name) return alert('Please enter a collection name');
+        
         closeNewShelfModal();
         
-        // Render Game List ke Picker
+        // Render Game List
         const listContainer = document.getElementById('pickerGamesList');
-        listContainer.innerHTML = ''; // Clear
+        listContainer.innerHTML = '';
         
         window.libraryGames.forEach(game => {
             const html = `
                 <label class="cursor-pointer group relative h-40">
-                    <input type="checkbox" name="selected_games" value="${game.id}" class="peer hidden">
+                    <input type="checkbox" class="peer hidden game-checkbox" value="${game.id}">
                     <div class="border-4 border-transparent peer-checked:border-green-500 peer-checked:bg-[#2a475e] bg-[#222b35] hover:bg-[#2a3540] p-2 transition rounded relative h-full flex flex-col">
                         <img src="${game.cover_image}" class="w-full h-24 object-cover mb-2 opacity-80 peer-checked:opacity-100">
                         <span class="text-gray-300 font-bold text-xs peer-checked:text-green-400 leading-tight line-clamp-2">${game.title}</span>
@@ -289,102 +267,54 @@
             listContainer.insertAdjacentHTML('beforeend', html);
         });
 
-        setTimeout(() => { openGamePicker(); }, 300);
+        setTimeout(() => openGamePicker(), 300);
     }
 
-    function openGamePicker() {
-        const modal = document.getElementById('gamePickerModal');
-        const backdrop = document.getElementById('pickerBackdrop');
-        const card = document.getElementById('pickerCard');
-        modal.classList.remove('hidden');
-        requestAnimationFrame(() => { backdrop.classList.remove('opacity-0'); card.classList.remove('opacity-0', 'scale-95'); });
-    }
-    function closeGamePicker() {
-        const modal = document.getElementById('gamePickerModal');
-        const backdrop = document.getElementById('pickerBackdrop');
-        const card = document.getElementById('pickerCard');
-        backdrop.classList.add('opacity-0'); card.classList.add('opacity-0', 'scale-95');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
-    }
-
-    // --- LOGIKA MODAL 3: DYNAMIC FILTER ---
     function proceedToDynamicFilter() {
         const name = document.getElementById('shelfNameInput').value;
         if(!name) return alert('Please enter a collection name');
         closeNewShelfModal();
-        setTimeout(() => { openDynamicFilter(); }, 300);
-    }
-    function openDynamicFilter() {
-        const modal = document.getElementById('dynamicFilterModal');
-        const backdrop = document.getElementById('filterBackdrop');
-        const card = document.getElementById('filterCard');
-        modal.classList.remove('hidden');
-        requestAnimationFrame(() => { backdrop.classList.remove('opacity-0'); card.classList.remove('opacity-0', 'scale-95'); });
-    }
-    function closeDynamicFilter() {
-        const modal = document.getElementById('dynamicFilterModal');
-        const backdrop = document.getElementById('filterBackdrop');
-        const card = document.getElementById('filterCard');
-        backdrop.classList.add('opacity-0'); card.classList.add('opacity-0', 'scale-95');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        setTimeout(() => openDynamicFilter(), 300);
     }
 
-    // --- LOGIKA FINAL: CREATE SHELF ---
+    // --- LOGIKA UTAMA: SUBMIT DATA SEBAGAI FORM (FIX) ---
     function finishCreateShelf(type) {
         const name = document.getElementById('shelfNameInput').value;
-        let filteredGames = [];
+        
+        // 1. Isi Data Form Tersembunyi
+        document.getElementById('formShelfName').value = name;
+        document.getElementById('formShelfMode').value = type;
 
         if (type === 'manual') {
-            const checkboxes = document.querySelectorAll('input[name="selected_games"]:checked');
-            const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
-            filteredGames = window.libraryGames.filter(g => ids.includes(g.id));
+            const checkboxes = document.querySelectorAll('.game-checkbox:checked');
+            const container = document.getElementById('formSelectedGamesContainer');
+            container.innerHTML = ''; // Reset container
+
+            if (checkboxes.length === 0) return alert("Please select at least one game.");
+
+            // Pindahkan ID checkbox ke input hidden agar bisa dikirim
+            checkboxes.forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selected_games[]';
+                input.value = cb.value;
+                container.appendChild(input);
+            });
+
             closeGamePicker();
-        } else if (type === 'dynamic') {
+        } 
+        else if (type === 'dynamic') {
             const genre = document.getElementById('dynamicGenreSelect').value;
-            filteredGames = window.libraryGames.filter(g => g.genre === genre);
+            document.getElementById('formShelfGenre').value = genre;
             closeDynamicFilter();
         }
 
-        if(filteredGames.length === 0) return alert("No games selected for this collection.");
-
-        // Clone Template Rak
-        setTimeout(() => {
-            const container = document.getElementById('shelves-container');
-            // Ambil template dari DOM (Rak 'ALL GAMES' biasanya ada)
-            // Kita cari elemen dengan class 'shelf-container' terakhir
-            const templates = document.querySelectorAll('.shelf-container');
-            if(templates.length === 0) return;
-            const template = templates[templates.length-1].cloneNode(true);
-            
-            // Update Judul
-            const titleEl = template.querySelector('h3');
-            if(titleEl) titleEl.childNodes[0].textContent = name + " ";
-            
-            // Update Count
-            const countEl = template.querySelector('.shelf-count');
-            if(countEl) countEl.textContent = filteredGames.length;
-
-            // Update Isi Buku (Ini bagian tricky di JS murni tanpa framework reactive)
-            // Kita akan hapus semua buku di template, lalu loop filteredGames dan buat HTML buku baru
-            // TAPI untuk SIMULASI TUGAS, kita cukup ganti ID dan tempelkan saja agar terlihat ada rak baru.
-            template.id = 'shelf-' + Date.now();
-            
-            // Animasi Masuk
-            template.style.opacity = 0;
-            template.style.transform = 'translateY(50px)';
-            container.prepend(template); // Taruh paling atas
-
-            anime({
-                targets: template,
-                opacity: [0, 1],
-                translateY: [50, 0],
-                duration: 800,
-                easing: 'easeOutExpo'
-            });
-        }, 300);
+        // 2. Submit Form Secara Otomatis
+        // Ini akan merefresh halaman dan menjalankan GameController@storeShelf
+        document.getElementById('createShelfForm').submit();
     }
 
-    // --- MODAL DETAIL ---
+    // --- DETAIL MODAL LOGIC (TETAP SAMA) ---
     function openBook(element) {
         const data = JSON.parse(element.getAttribute('data-data'));
         document.getElementById('mTitle').innerText = data.title;
@@ -408,5 +338,4 @@
     }
 </script>
 @endpush
-
 @endsection
