@@ -53,8 +53,24 @@
                 </form>
             </div>
 
-            {{-- KANAN: USER / AUTH (DI UPDATE) --}}
+            {{-- KANAN: USER / AUTH (DI UPDATE DENGAN CART) --}}
             <div class="flex items-center space-x-3 flex-shrink-0">
+                
+                {{-- === TOMBOL CART BARU DI SINI (SEBELAH KIRI PROFILE) === --}}
+                <a href="{{ route('cart.index') }}" class="relative group mr-2 p-1 rounded hover:bg-[#212c3d] transition">
+                    <div class="bg-[#5c7e10] hover:bg-[#76a113] text-white px-3 py-1 rounded-[2px] text-xs font-bold uppercase tracking-wider shadow-lg flex items-center gap-2">
+                        <span>Cart</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        @php $cartCount = count(session('cart', [])); @endphp
+                        @if($cartCount > 0)
+                            <span class="bg-black text-[#66c0f4] px-1.5 py-0.5 rounded text-[10px]">{{ $cartCount }}</span>
+                        @endif
+                    </div>
+                </a>
+                {{-- === END TOMBOL CART === --}}
+
                 @auth
                     {{-- 1. Info User (Nama & Saldo) --}}
                     <div class="text-right hidden sm:block leading-tight mr-2">
@@ -62,7 +78,7 @@
                         <div class="text-[10px] text-gray-400 font-mono">Rp 0</div>
                     </div>
 
-                    {{-- 2. Profile Picture & Dropdown (SESUAI REQUEST) --}}
+                    {{-- 2. Profile Picture & Dropdown --}}
                     <div class="relative" x-data="{ open: false }">
                         {{-- Tombol Gambar Profile --}}
                         <button @click="open = !open" class="flex items-center gap-2 focus:outline-none group">
@@ -76,7 +92,7 @@
                             </svg>
                         </button>
 
-                        {{-- Dropdown Menu (Muncul saat klik gambar) --}}
+                        {{-- Dropdown Menu --}}
                         <div x-show="open" 
                              @click.outside="open = false"
                              x-transition:enter="transition ease-out duration-100"
@@ -93,12 +109,9 @@
                                 <div class="font-bold text-white truncate">{{ Auth::user()->email }}</div>
                             </div>
 
-                            {{-- Link ke Profile Edit --}}
                             <a href="{{ route('profile.edit') }}" class="block px-4 py-2 hover:bg-[#dcdedf] hover:text-[#171a21] transition font-bold text-white">Edit Profile / Avatar</a>
-                            
                             <a href="{{ route('library.index') }}" class="block px-4 py-2 hover:bg-[#dcdedf] hover:text-[#171a21] transition">My Games</a>
                             
-                            {{-- Admin Panel Link (Jika Admin) --}}
                             @if(Auth::user()->role === 'admin')
                                 <div class="border-t border-gray-600 my-1"></div>
                                 <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-red-400 hover:bg-red-900 hover:text-white font-bold transition">⚠️ Admin Panel</a>
@@ -113,7 +126,6 @@
                         </div>
                     </div>
                 @else
-                    {{-- GUEST LINKS (TETAP SAMA) --}}
                     <a href="{{ route('login') }}" class="text-xs font-bold text-white hover:text-blue-400 uppercase">Login</a>
                     <span class="text-gray-600">|</span>
                     <a href="{{ route('register') }}" class="text-xs font-bold text-white hover:text-blue-400 uppercase">Register</a>
@@ -131,7 +143,7 @@
         @endif
     </main>
 
-    {{-- FOOTER UPDATED --}}
+    {{-- FOOTER (TETAP SAMA) --}}
     <footer class="bg-[#171a21] text-[#8f98a0] py-12 mt-auto border-t-4 border-black shadow-[0_-10px_40px_rgba(0,0,0,0.5)] relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 border-b border-gray-700 pb-8">
@@ -149,14 +161,12 @@
                     <div>
                         <h5 class="font-bold text-white mb-3 uppercase text-xs tracking-wider">Perusahaan</h5>
                         <ul class="space-y-2">
-                            {{-- Link Tentang Kami --}}
                             <li><a href="{{ route('pages.about') }}" class="hover:text-white hover:underline">Tentang Kami</a></li>
                         </ul>
                     </div>
                     <div>
                         <h5 class="font-bold text-white mb-3 uppercase text-xs tracking-wider">Bantuan</h5>
                         <ul class="space-y-2">
-                            {{-- Link Stats --}}
                             <li><a href="{{ route('pages.stats') }}" class="hover:text-white hover:underline">System Status</a></li>
                         </ul>
                     </div>
@@ -165,14 +175,12 @@
             
             <div class="flex flex-col md:flex-row justify-between items-center text-xs font-bold gap-4">
                 <div class="flex flex-wrap gap-4 justify-center md:justify-start">
-                    {{-- Link Privacy, Terms, Refund --}}
                     <a href="{{ route('pages.privacy') }}" class="hover:text-white">Kebijakan Privasi</a>
                     <span class="text-gray-600">|</span>
                     <a href="{{ route('pages.terms') }}" class="hover:text-white">Perjanjian Pelanggan</a>
                     <span class="text-gray-600">|</span>
                     <a href="{{ route('refunds.create') }}" class="hover:text-white text-[#66c0f4]">Refunds</a>
                 </div>
-                {{-- Social Media dihapus --}}
             </div>
         </div>
     </footer>

@@ -4,8 +4,9 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LibraryController; 
-use App\Http\Controllers\PageController; // Import Controller Baru
-use App\Http\Controllers\RefundController; // Import Controller Baru
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\RefundController;
+use App\Http\Controllers\CartController; // Import Controller Baru
 use Illuminate\Support\Facades\Route;
 
 // --- EXISTING ROUTES ---
@@ -18,6 +19,14 @@ Route::get('/about', [PageController::class, 'about'])->name('pages.about');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('pages.privacy');
 Route::get('/terms', [PageController::class, 'terms'])->name('pages.terms');
 Route::get('/stats', [PageController::class, 'stats'])->name('pages.stats');
+
+// --- CART ROUTES (SISTEM KERANJANG) ---
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add/{id}', [CartController::class, 'addToCart'])->name('cart.add'); // Ubah method jadi addToCart biar spesifik
+Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
+Route::get('/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+Route::post('/checkout/process', [CartController::class, 'processPayment'])->name('cart.process');
+Route::get('/checkout/success', [CartController::class, 'success'])->name('cart.success');
 
 // --- AUTH ROUTES ---
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -40,12 +49,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return back()->with('status', 'request-sent');
     })->name('user.request_publisher');
 
-    // --- NEW REFUND ROUTES ---
+    // --- REFUND ROUTES ---
     Route::get('/support/refunds', [RefundController::class, 'create'])->name('refunds.create');
     Route::post('/support/refunds', [RefundController::class, 'store'])->name('refunds.store');
 });
 
-// --- ADMIN ROUTES (UPDATED) ---
+// --- ADMIN ROUTES ---
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
     
@@ -53,11 +62,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/approve/{user}', [AdminController::class, 'approvePublisher'])->name('admin.approvePublisher');
     Route::post('/admin/reject/{user}', [AdminController::class, 'rejectPublisher'])->name('admin.rejectPublisher');
     
-    // --- NEW REFUND ACTIONS ---
+    // --- REFUND ACTIONS ---
     Route::post('/admin/refund/{id}/approve', [AdminController::class, 'approveRefund'])->name('admin.refund.approve');
     Route::post('/admin/refund/{id}/reject', [AdminController::class, 'rejectRefund'])->name('admin.refund.reject');
     
-    // Game Management (Existing)
+    // Game Management
     Route::get('/games/create', [GameController::class, 'create'])->name('games.create');
     Route::post('/games', [GameController::class, 'store'])->name('games.store');
     Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
