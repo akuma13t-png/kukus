@@ -77,8 +77,8 @@ class CartController extends Controller
         return redirect()->route('cart.index')->with('success', 'Game dihapus dari keranjang.');
     }
 
-    // Halaman Checkout (TIDAK ADA PERUBAHAN)
-    public function checkout()
+    // Halaman Checkout (UPDATE: Include Vouchers)
+    public function checkout(Request $request)
     {
         $cart = Session::get('cart', []);
         
@@ -95,14 +95,39 @@ class CartController extends Controller
             $total += $price;
         }
 
-        return view('cart.checkout', compact('cart', 'total'));
+        // Get User Vouchers
+        $user = Auth::user();
+        $vouchers = $user->vouchers()->wherePivot('is_used', false)->get();
+
+        // Calculate Discount if Voucher Selected
+        $discountAmount = 0;
+        $selectedVoucher = null;
+
+        if ($request->has('voucher_id')) {
+            $voucher = $vouchers->find($request->voucher_id);
+            if ($voucher) {
+                $selectedVoucher = $voucher;
+                if ($voucher->type === 'percent') {
+                    $discountAmount = $total * ($voucher->discount_percent / 100);
+                } else {
+                    $discountAmount = $voucher->discount_amount;
+                }
+            }
+        }
+        
+        // Ensure discount doesn't exceed total
+        $discountAmount = min($discountAmount, $total);
+        $finalTotal = $total - $discountAmount;
+
+        return view('cart.checkout', compact('cart', 'total', 'vouchers', 'selectedVoucher', 'discountAmount', 'finalTotal'));
     }
 
-    // Process Pembayaran (UPDATE LOGIKA KUKUS MONEY)
+    // Process Pembayaran (UPDATE: Handle Vouchers)
     public function processPayment(Request $request)
     {
         $request->validate([
             'payment_method' => 'required',
+            'voucher_id' => 'nullable|exists:user_vouchers,voucher_id',
         ]);
 
         $cart = Session::get('cart', []);
@@ -113,16 +138,17 @@ class CartController extends Controller
         $user = Auth::user();
         $paymentMethod = $request->payment_method;
         $transactionId = 'TXN-' . strtoupper(Str::random(10));
+        $voucherId = $request->input('voucher_id');
 
         try {
-            DB::transaction(function () use ($user, $cart, $paymentMethod, $transactionId) {
+            DB::transaction(function () use ($user, $cart, $paymentMethod, $transactionId, $voucherId) {
                 // Lock user record for update to prevent race conditions
                 $user = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
 
                 $totalTransaction = 0;
                 $purchasedGames = [];
 
-                // 1. Hitung Total
+                // 1. Hitung Total Awal
                 foreach ($cart as $item) {
                     $price = $item['price'];
                     if(isset($item['discount_percent']) && $item['discount_percent'] > 0) {
@@ -132,27 +158,50 @@ class CartController extends Controller
                     $purchasedGames[] = array_merge($item, ['final_price' => $price]);
                 }
 
-                // Logika Saldo Kukus Money
+                // 2. Apply Voucher Logic
+                $discountAmount = 0;
+                if ($voucherId) {
+                    // Check if user owns voucher and is unused
+                    $userVoucher = $user->vouchers()->where('voucher_id', $voucherId)->wherePivot('is_used', false)->first();
+                    
+                    if ($userVoucher) {
+                        if ($userVoucher->type === 'percent') {
+                            $discountAmount = $totalTransaction * ($userVoucher->discount_percent / 100);
+                        } else {
+                            $discountAmount = $userVoucher->discount_amount;
+                        }
+                        
+                        // Mark voucher as used
+                        $user->vouchers()->updateExistingPivot($voucherId, ['is_used' => true]);
+                    }
+                }
+
+                // Ensure discount doesn't exceed total
+                $discountAmount = min($discountAmount, $totalTransaction);
+                $finalTotal = $totalTransaction - $discountAmount;
+
+                // 3. Logika Saldo Kukus Money
                 if ($paymentMethod === 'kukus_money') {
-                    if ($user->kukus_money_balance < $totalTransaction) {
+                    if ($user->kukus_money_balance < $finalTotal) {
                         throw new \Exception('Saldo Kukus Money Anda (Rp' . number_format($user->kukus_money_balance, 0, ',', '.') . 
-                                         ') tidak cukup untuk total pembelian Rp' . number_format($totalTransaction, 0, ',', '.') . '.');
+                                         ') tidak cukup untuk total pembelian Rp' . number_format($finalTotal, 0, ',', '.') . '.');
                     }
                     
                     // Berhasil: Kurangi saldo Kukus Money
-                    $user->kukus_money_balance -= $totalTransaction;
+                    $user->kukus_money_balance -= $finalTotal;
                     $user->save();
                 } 
 
-                // 2. Tambahkan ke Library (berlaku untuk semua metode pembayaran)
+                // 4. Tambahkan ke Library (berlaku untuk semua metode pembayaran)
                 foreach ($purchasedGames as $item) {
                     try {
                         $user->games()->attach($item['id'], [
-                            'purchase_price' => $item['final_price'],
+                            'purchase_price' => $item['final_price'], // Note: Storing original price per item, not discounted. 
+                            // Ideally we distribute discount, but for simplicity we store base price.
                             'transaction_id' => $transactionId,
                             'created_at' => now(),
                             'updated_at' => now(),
-                            'purchase_method' => $paymentMethod, // Simpan metode pembayaran
+                            'purchase_method' => $paymentMethod, 
                         ]);
                     } catch (\Exception $e) {
                         // Abaikan jika game sudah dimiliki
@@ -160,12 +209,13 @@ class CartController extends Controller
                     }
                 }
                 
-                // 3. Siapkan data transaksi untuk halaman sukses
+                // 5. Siapkan data transaksi untuk halaman sukses
                 $transactionData = [
                     'id' => $transactionId,
                     'user_id' => $user->id,
                     'user_name' => $user->name,
-                    'total' => $totalTransaction,
+                    'total' => $finalTotal,
+                    'discount' => $discountAmount,
                     'method' => $paymentMethod,
                     'date' => now()->format('d F Y H:i:s'),
                     'items' => $purchasedGames,

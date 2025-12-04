@@ -26,6 +26,7 @@ class User extends Authenticatable
         'publisher_request_status',
         'profile_photo_path',
         'kukus_money_balance', // BARU: Tambahkan Kukus Money
+        'kukus_coins',
     ];
 
     /**
@@ -81,5 +82,11 @@ class User extends Authenticatable
 
     public function isPublisher() {
         return $this->role === 'publisher' || $this->role === 'admin';
+    }
+    public function vouchers()
+    {
+        return $this->belongsToMany(Voucher::class, 'user_vouchers')
+                    ->withPivot('is_used')
+                    ->withTimestamps();
     }
 }

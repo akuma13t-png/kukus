@@ -36,8 +36,8 @@
                         class="px-3 py-2 font-bold text-blue-400 hover:text-white transition uppercase text-sm">Store</a>
                     <a href="{{ route('library.index') }}"
                         class="px-3 py-2 font-bold text-gray-400 hover:text-white transition uppercase text-sm">Library</a>
-                    <a href="{{ route('dashboard') }}"
-                        class="px-3 py-2 font-bold text-gray-400 hover:text-white transition uppercase text-sm">Community</a>
+                    <a href="{{ route('daily.challenge') }}"
+                        class="px-3 py-2 font-bold text-gray-400 hover:text-white transition uppercase text-sm">Daily Challenge</a>
                 </nav>
             </div>
 
@@ -70,6 +70,11 @@
                             <span class="text-red-400 font-black">Kukus Money:</span> 
                             Rp {{ number_format(Auth::user()->kukus_money_balance ?? 0, 0, ',', '.') }}
                         </div>
+                        {{-- Tampilkan Kukus Coins --}}
+                        <div class="text-[10px] text-yellow-500 font-mono">
+                            🪙 {{ number_format(Auth::user()->kukus_coins ?? 0) }} Coins
+                        </div>
+
                     </div>
                 @endauth
                 

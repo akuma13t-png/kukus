@@ -25,6 +25,9 @@
             <div class="w-full md:w-2/3 border-r border-black pr-8">
                 <form action="{{ route('cart.process') }}" method="POST">
                     @csrf
+                    @if(isset($selectedVoucher))
+                        <input type="hidden" name="voucher_id" value="{{ $selectedVoucher->id }}">
+                    @endif
                     
                     @php $kukusMoneyBalance = Auth::user()->kukus_money_balance ?? 0; @endphp
                     
@@ -104,9 +107,41 @@
                     @endforeach
                 </div>
 
-                <div class="border-t border-gray-600 pt-4 flex justify-between items-center">
-                    <span class="text-white font-bold">Total:</span>
-                    <span class="text-[#66c0f4] font-black text-xl">Rp {{ number_format($total, 0, ',', '.') }}</span>
+                {{-- VOUCHER SECTION --}}
+                <div class="mb-6 border-t border-gray-600 pt-4">
+                    <form action="{{ route('cart.checkout') }}" method="GET" id="voucherForm">
+                        <label class="block text-gray-400 text-xs font-bold uppercase mb-2">Apply Voucher</label>
+                        <select name="voucher_id" onchange="document.getElementById('voucherForm').submit()" class="w-full bg-[#2a3f5a] text-white border-none rounded text-sm p-2">
+                            <option value="">Select a voucher...</option>
+                            @foreach($vouchers as $voucher)
+                                <option value="{{ $voucher->id }}" {{ (isset($selectedVoucher) && $selectedVoucher->id == $voucher->id) ? 'selected' : '' }}>
+                                    {{ $voucher->name }} 
+                                    ({{ $voucher->type === 'percent' ? $voucher->discount_percent . '%' : 'Rp ' . number_format($voucher->discount_amount) }} Off)
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
+
+                <div class="border-t border-gray-600 pt-4 space-y-2">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-400">Subtotal:</span>
+                        <span class="text-gray-300">Rp {{ number_format($total, 0, ',', '.') }}</span>
+                    </div>
+                    
+                    @if(isset($discountAmount) && $discountAmount > 0)
+                        <div class="flex justify-between items-center text-sm text-green-400">
+                            <span>Discount ({{ $selectedVoucher->name }}):</span>
+                            <span>- Rp {{ number_format($discountAmount, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
+
+                    <div class="flex justify-between items-center pt-2 border-t border-gray-700">
+                        <span class="text-white font-bold">Total:</span>
+                        <span class="text-[#66c0f4] font-black text-xl">
+                            Rp {{ number_format(isset($finalTotal) ? $finalTotal : $total, 0, ',', '.') }}
+                        </span>
+                    </div>
                 </div>
             </div>
 

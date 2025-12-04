@@ -7,6 +7,8 @@ use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\DailyChallengeController;
+use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\TopupController; // BARU: Import TopupController
 use Illuminate\Support\Facades\Route;
 
@@ -100,6 +102,19 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     // Game Management (Delete permanen oleh Admin)
     Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
+    
+    // --- ADMIN TEST FEATURES ---
+    Route::post('/admin/daily-challenge/set-game', [DailyChallengeController::class, 'setGame'])->name('admin.daily.setGame');
+    Route::post('/admin/voucher/grant/{voucher}', [VoucherController::class, 'grant'])->name('admin.voucher.grant');
+});
+
+// --- DAILY CHALLENGE & VOUCHERS (Available for all authenticated users) ---
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/daily-challenge', [DailyChallengeController::class, 'index'])->name('daily.challenge');
+    Route::post('/daily-challenge/complete', [DailyChallengeController::class, 'complete'])->name('daily.complete');
+    
+    Route::get('/voucher-shop', [VoucherController::class, 'index'])->name('voucher.shop');
+    Route::post('/voucher-shop/buy/{voucher}', [VoucherController::class, 'buy'])->name('voucher.buy');
 });
 
 require __DIR__.'/auth.php';
