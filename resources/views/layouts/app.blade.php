@@ -37,5 +37,11 @@
                 @endif
             </main>
         </div>
+        @stack('modals')
+
+        @livewireScripts
+        
+        {{-- AFK / Zen Mode Overlay --}}
+        <x-afk-overlay />
     </body>
 </html>

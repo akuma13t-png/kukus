@@ -11,7 +11,7 @@
                 <div class="bg-green-600 text-white p-3 mb-6 rounded">{{ session('success') }}</div>
             @endif
 
-            <form action="{{ route('game.update', $game) }}" method="POST" class="space-y-6">
+            <form action="{{ route('games.update', $game) }}" method="POST" class="space-y-6">
                 @csrf
                 @method('PUT')
 
