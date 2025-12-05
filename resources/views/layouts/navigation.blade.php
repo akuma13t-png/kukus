@@ -1,4 +1,4 @@
-<header class="bg-[#171a21] border-b-4 border-black shadow-xl sticky top-0 z-50">
+<header class="bg-[#2f2e2e] border-b-4 border-black shadow-xl sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center gap-4">
 
         {{-- KIRI: LOGO & NAVIGASI --}}
@@ -7,15 +7,15 @@
                 <img src="{{ asset('logo.png') }}" alt="Logo"
                     class="h-10 w-auto object-contain drop-shadow-md hover:scale-105 transition">
                 <h1 class="text-2xl font-black tracking-widest uppercase hidden md:block">
-                    <span class="text-white">STEAM</span>
+                    <span class="text-white">KU</span>
                     <span class="text-gray-500 group-hover:text-white transition"
-                        style="-webkit-text-stroke: 0px;">CLONE</span>
+                        style="-webkit-text-stroke: 0px;">KUS</span>
                 </h1>
             </a>
 
             <nav class="hidden lg:flex space-x-1 ml-4">
                 <a href="{{ route('store.index') }}"
-                    class="px-3 py-2 font-bold text-blue-400 hover:text-white transition uppercase text-sm">Store</a>
+                    class="px-3 py-2 font-bold text-gray-400 hover:text-white transition uppercase text-sm">Store</a>
                 <a href="{{ route('library.index') }}"
                     class="px-3 py-2 font-bold text-gray-400 hover:text-white transition uppercase text-sm">Library</a>
                 <a href="{{ route('daily.challenge') }}"

@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Register - SteamClone</title>
+    <title>Register</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -19,7 +19,7 @@
 
         {{-- PANEL REGISTER (Style Gradient sama dengan Login) --}}
         <div class="relative z-10 w-full sm:max-w-md rounded-xl shadow-2xl overflow-hidden"
-            style="background: linear-gradient(to bottom, #2e2e2eff 80%, #000000ff 100%);">
+            style="background:black;">
 
             <div class="p-8 pb-4">
 
@@ -42,7 +42,7 @@
                         </h1>
 
                     </div>
-                    <p class="text-black text-sm mt-1">Buat akun baru</p>
+                    <p class="text-white text-sm mt-1">Buat akun baru</p>
                 </div>
 
                 {{-- Validation Errors --}}
@@ -67,7 +67,7 @@
                         </label>
                         <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus
                             autocomplete="name"
-                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors shadow-sm placeholder-gray-500"
+                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-black focus:border-black outline-none transition-colors shadow-sm placeholder-white"
                             placeholder="Nama Lengkap">
                     </div>
 
@@ -78,7 +78,7 @@
                         </label>
                         <input id="email" type="email" name="email" value="{{ old('email') }}" required
                             autocomplete="username"
-                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors shadow-sm placeholder-gray-500"
+                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-black focus:border-black outline-none transition-colors shadow-sm placeholder-white"
                             placeholder="user@example.com">
                     </div>
 
@@ -88,7 +88,7 @@
                             PASSWORD
                         </label>
                         <input id="password" type="password" name="password" required autocomplete="new-password"
-                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors shadow-sm placeholder-gray-500"
+                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-black focus:border-black- outline-none transition-colors shadow-sm placeholder-white"
                             placeholder="••••••••">
                     </div>
 
@@ -100,14 +100,14 @@
                         </label>
                         <input id="password_confirmation" type="password" name="password_confirmation" required
                             autocomplete="new-password"
-                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors shadow-sm placeholder-gray-500"
+                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-black focus:border-black outline-none transition-colors shadow-sm placeholder-white"
                             placeholder="••••••••">
                     </div>
 
                     {{-- Tombol Daftar --}}
                     <div class="flex items-center justify-end mt-6">
                         <button type="submit"
-                            class="bg-gradient-to-r from-black to-black hover:from-blue-500 hover:to-blue-400 text-white font-bold py-2 px-6 rounded shadow-lg transform hover:translate-y-[-1px] transition-all duration-200 flex items-center gap-2 border border-black/20">
+                            class="bg-gradient-to-r from-black to-black hover:from-yellow-500 hover:to-yellow-400 text-white font-bold py-2 px-6 rounded shadow-lg transform hover:translate-y-[-1px] transition-all duration-200 flex items-center gap-2 border border-black/20">
                             <span>DAFTAR</span>
                         </button>
                     </div>
@@ -116,7 +116,7 @@
 
             {{-- FOOTER PANEL (Link balik ke Login) --}}
             <div class="px-8 py-4 border-t border-gray-700/30 text-center">
-                <p class="text-sm text-gray-800 font-medium">
+                <p class="text-sm text-white font-medium">
                     Sudah punya akun?
                     <a href="{{ route('login') }}"
                         class="text-blue-600 hover:text-blue-800 font-bold ml-1 hover:underline">

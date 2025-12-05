@@ -6,30 +6,30 @@
 
 .game-card-hover:hover {
     /* Bayangan ke bawah yang halus */
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); 
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
     /* Menggeser kartu sedikit ke atas saat di-hover */
-    transform: translateY(-2px); 
+    transform: translateY(-2px);
     /* Garis tipis aksen biru di sebelah kiri */
-    border-left: 4px solid #4A90E2; 
+    border-left: 4px solid #000000;
 }
 
-input[type="text"], 
-input[type="email"], 
+input[type="text"],
+input[type="email"],
 input[type="password"] {
-    background-color: #2a475e !important;
+    background-color: #ffc105ff !important;
     color: white !important;
     border: 1px solid #000 !important;
 }
 
-input[type="text"]:focus, 
-input[type="email"]:focus, 
+input[type="text"]:focus,
+input[type="email"]:focus,
 input[type="password"]:focus {
-    border-color: #66c0f4 !important;
+    border-color: #000000 !important;
     ring: 0 !important;
 }
 
 label {
-    color: #b8b6b4 !important;
+    color: #ffffff !important;
     font-weight: bold;
     text-transform: uppercase;
     font-size: 0.75rem;

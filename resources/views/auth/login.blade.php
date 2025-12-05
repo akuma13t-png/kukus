@@ -64,7 +64,7 @@
                         {{-- Input: Putih dengan Border Hitam --}}
                         <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
                             autocomplete="username"
-                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors shadow-sm placeholder-gray-500"
+                            class="w-full bg-white border-2 border-yellow text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition-colors shadow-sm placeholder-gray-500"
                             placeholder="user@example.com">
                     </div>
 
@@ -77,7 +77,7 @@
 
                         {{-- Input: Putih dengan Border Hitam --}}
                         <input id="password" type="password" name="password" required autocomplete="current-password"
-                            class="w-full bg-white border-2 border-black text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors shadow-sm placeholder-gray-500"
+                            class="w-full bg-white border-2 border-yellow text-gray-900 font-bold rounded p-2.5 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition-colors shadow-sm placeholder-gray-500"
                             placeholder="••••••••">
                     </div>
 
@@ -93,7 +93,7 @@
                         </label>
 
                         <button type="submit"
-                            class="bg-gradient-to-r from-black to-black hover:from-blue-500 hover:to-blue-400 text-white font-bold py-2 px-6 rounded shadow-lg transform hover:translate-y-[-1px] transition-all duration-200 flex items-center gap-2 border border-black/20">
+                            class="bg-gradient-to-r from-black to-black hover:from-yellow-500 hover:to-yellow-400 text-white font-bold py-2 px-6 rounded shadow-lg transform hover:translate-y-[-1px] transition-all duration-200 flex items-center gap-2 border border-black/20">
                             <span>MASUK</span>
                         </button>
                     </div>

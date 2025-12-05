@@ -208,8 +208,6 @@
     </footer>
 
     @stack('scripts')
-
-        @livewireScripts
         
         {{-- AFK / Zen Mode Overlay --}}
         <x-afk-overlay />
